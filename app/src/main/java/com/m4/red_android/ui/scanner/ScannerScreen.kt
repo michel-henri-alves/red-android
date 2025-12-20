@@ -1,31 +1,30 @@
 package com.m4.red_android.ui.scanner
 
 import ActionButtons
-import androidx.compose.foundation.layout.Arrangement
+import android.content.Context
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.m4.red_android.viewmodels.BarcodeViewModel
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
 fun ScannerScreen(
-    viewModel: BarcodeViewModel = viewModel(),
+    onNavigate: () -> Unit,
+    viewModel: BarcodeViewModel,
     modifier: Modifier = Modifier
 ) {
 
     val product = viewModel.product.collectAsState()
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -33,15 +32,29 @@ fun ScannerScreen(
             .padding(8.dp)
     ) {
 
-        CameraPreview(viewModel = viewModel, modifier = Modifier.fillMaxWidth().padding(10.dp, 10.dp).weight(0.5f))
+        CameraPreview(
+            viewModel = viewModel,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp, 10.dp)
+                .weight(0.5f)
+        )
 
+        Spacer(modifier = Modifier.weight(1f))   // empurra para baixo
 
         BarcodeList(viewModel, modifier = Modifier.weight(3f))
 
         Spacer(modifier = Modifier.weight(1f))   // empurra para baixo
 
+        TextInfo(
+            viewModel,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        )
+
         ActionButtons(
-            { println("Clicou no 1") },
+            { goToPayment(onNavigate, viewModel, context) },
             { println("clicou no 2") },
             { cleanList(viewModel) },
             { println("clicou no 4") },
@@ -55,9 +68,20 @@ fun ScannerScreen(
 
 
 fun cleanList(viewModel: BarcodeViewModel) {
-    viewModel.clearProducts()
+    viewModel.resetState()
 }
 
+fun goToPayment(onNavigate: () -> Unit, viewModel: BarcodeViewModel, context: Context) {
+    if (viewModel.qty != 0)
+        onNavigate()
+    else
+        Toast.makeText(
+            context,
+            "O carrinho está vazio",
+            Toast.LENGTH_LONG
+        ).show()
+
+}
 
 //@Composable
 //fun ScannerScreen(viewModel1: BarcodeViewModel = viewModel()) {

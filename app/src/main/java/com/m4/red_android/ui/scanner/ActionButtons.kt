@@ -24,6 +24,5 @@ fun ActionButtons(
         Button(onClick = onClick1) { Text("Vender") }
         Button(onClick = onClick2) { Text("Buscar") }
         Button(onClick = onClick3) { Text("Limpar") }
-        Button(onClick = onClick4) { Text("Remover") }
     }
 }

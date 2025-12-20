@@ -1,17 +1,21 @@
 package com.m4.red_android.viewmodels
 
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.m4.red_android.data.api.RetrofitClient
+import com.m4.red_android.data.enums.PaymentMethod
 import com.m4.red_android.data.models.Product
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+//@HiltViewModel
 class BarcodeViewModel : ViewModel() {
 
     private val _codes = mutableStateListOf<String>()
@@ -20,6 +24,12 @@ class BarcodeViewModel : ViewModel() {
     val products: List<Product> get() = _products
     private var _amount = mutableStateOf(0.0)
     val amount: Double get() = _amount.value
+    private var _qty = mutableStateOf(0)
+    val qty: Int get() = _qty.value
+    private val _paymentMethod = mutableStateOf<PaymentMethod?>(null)
+    val paymentMethod: PaymentMethod? get() = _paymentMethod.value
+    var paymentAmount by mutableStateOf("")
+        private set
 
     private val _product = MutableStateFlow<Product?>(null)
     val product: StateFlow<Product?> get() = _product
@@ -58,6 +68,7 @@ class BarcodeViewModel : ViewModel() {
                 _products.add(result)
                 result.priceForSale
                 _amount.value += result.priceForSale
+                _qty.value ++
                 println(_amount.value)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -70,5 +81,20 @@ class BarcodeViewModel : ViewModel() {
         _products.clear()
         _codes.clear()
         _amount.value = 0.0
+        _qty.value = 0
+    }
+
+    fun removeProduct(product: Product) {
+        _products.remove(product)
+        _amount.value -= product.priceForSale
+        _qty.value --
+    }
+
+    fun selectPaymentMethod(method: PaymentMethod) {
+        _paymentMethod.value = method
+    }
+
+    fun onPaymentAmountChange(value: String) {
+        paymentAmount = value.filter { it.isDigit() || it == '.' }
     }
 }

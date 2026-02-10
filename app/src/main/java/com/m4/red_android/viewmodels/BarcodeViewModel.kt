@@ -1,6 +1,7 @@
 package com.m4.red_android.viewmodels
 
-import android.widget.Toast
+import android.media.AudioManager
+import android.media.ToneGenerator
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -48,12 +49,8 @@ class BarcodeViewModel : ViewModel() {
 
     private var _due = mutableStateOf(0.0)
     val due: Double get() = _due.value
-    val dueText: String
-        get() = String.format("%.2f", _due.value)
-
-    fun updateDue(value: Double) {
-        _due.value = value
-    }
+    var dueText by mutableStateOf("")
+    private set
 
     private var _showDiscountDialog = mutableStateOf(false)
     val showDiscountDialog: Boolean get() = _showDiscountDialog.value
@@ -81,7 +78,15 @@ class BarcodeViewModel : ViewModel() {
 
     sealed class UiEvent {
         object GoBack : UiEvent()
+        object SalesFinished: UiEvent()
+        data class RemainNotification(val valueReceived: Double, val valueRemain: Double) : UiEvent()
+//        object RemaingNotification: UiEvent()
     }
+
+    val toneGenerator = ToneGenerator(
+        AudioManager.STREAM_MUSIC,
+        100 // volume (0–100)
+    )
 
     fun onPaymentFinishedSuccessfully() {
         viewModelScope.launch {
@@ -103,15 +108,25 @@ class BarcodeViewModel : ViewModel() {
     }
 
     private fun fetchProduct(barcode: String) {
+        toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP,150)
         viewModelScope.launch {
             try {
                 val result = RetrofitClient.productApi.getProduct(barcode)
-                _products.add(result)
+                _products.add(0,result)
                 result.priceForSale
                 _amount.value += result.priceForSale
                 _due.value = _amount.value
                 _qty.value++
                 println(_amount.value)
+            } catch (e: retrofit2.HttpException) {
+                if (e.code() == 404) {
+                    println(_amount.value)
+                    _products.add(0, Product(
+                        "0","Produto não encontrado ($barcode)",0.0))
+                } else {
+                    e.printStackTrace()
+                    _product.value = null
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _product.value = null
@@ -137,12 +152,15 @@ class BarcodeViewModel : ViewModel() {
     }
 
     fun onPaymentAmountChange(value: String) {
-
         paymentAmount = value.filter { it.isDigit() || it == '.' }
+        dueText = value.filter { it.isDigit() || it == '.' }
     }
 
     fun paymentAmountAsDouble(): Double {
-        return paymentAmount
+//        return paymentAmount
+//            .replace(",", ".")
+//            .toDoubleOrNull() ?: 0.0
+        return dueText
             .replace(",", ".")
             .toDoubleOrNull() ?: 0.0
     }
@@ -150,6 +168,7 @@ class BarcodeViewModel : ViewModel() {
     fun applyDiscount(value: Double) {
         _discount.value = value
         _due.value -= value
+        dueText = _due.value.toString()
 
     }
 
@@ -163,6 +182,7 @@ class BarcodeViewModel : ViewModel() {
 
     fun setPaymentAmount() {
         paymentAmount = formatter.format(_amount.value);
+        dueText = formatter.format(_amount.value);
     }
 
     fun finalizePayment() {
@@ -179,6 +199,9 @@ class BarcodeViewModel : ViewModel() {
 
         if (totalWithDiscount.compareTo(BigDecimal.ZERO) == 0) {
            saveSale()
+            viewModelScope.launch {
+                _uiEvent.emit(UiEvent.SalesFinished)
+            }
 
         } else if (totalWithDiscount < BigDecimal.ZERO) {
             _due.value = 0.0
@@ -186,9 +209,15 @@ class BarcodeViewModel : ViewModel() {
             setShowChangeDialog(true)
 
         }
-//        else {
-//            "faltam $totalWithDiscount"
-//        }
+        else {
+            "faltam $totalWithDiscount"
+            dueText = _due.value.toString()
+            viewModelScope.launch {
+                _uiEvent.emit(
+                    UiEvent.RemainNotification(valueReceived = _paid.value, valueRemain = _due.value)
+                )
+            }
+        }
     }
 
     fun LocalDateTime.toApiString(): String =
@@ -235,6 +264,7 @@ class BarcodeViewModel : ViewModel() {
         _paymentMethod.value = null
 
         paymentAmount = ""
+        dueText = ""
 
         _showChangeDialog.value = false
         _discount.value = 0.0

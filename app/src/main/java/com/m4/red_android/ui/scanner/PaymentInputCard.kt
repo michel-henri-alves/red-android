@@ -33,19 +33,40 @@ fun PaymentInputCard(
     modifier: Modifier = Modifier
 ) {
 
+
+    var input by remember { mutableStateOf("") }
+    viewModel.setPaymentAmount()
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is BarcodeViewModel.UiEvent.GoBack -> {
                     onBack()
                 }
+
+                is BarcodeViewModel.UiEvent.SalesFinished -> {
+                    Toast
+                        .makeText(
+                            context,
+                            "Venda finalizada",
+                            Toast.LENGTH_SHORT
+                        )
+                        .show()
+                }
+
+                is BarcodeViewModel.UiEvent.RemainNotification -> {
+                    Toast
+                        .makeText(
+                            context,
+                            "Recebido R$${event.valueReceived}. Restam R$${event.valueRemain}",
+                            Toast.LENGTH_SHORT
+                        )
+                        .show()
+                }
             }
         }
     }
-
-    var input by remember { mutableStateOf("") }
-    viewModel.setPaymentAmount()
-    val context = LocalContext.current
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -62,8 +83,8 @@ fun PaymentInputCard(
             )
 
             OutlinedTextField(
-                value = viewModel.paymentAmount,
-//                value = viewModel.dueText,
+//                value = viewModel.paymentAmount,
+                value = viewModel.dueText,
                 onValueChange = viewModel::onPaymentAmountChange,
                 label = { Text("Valor a pagar") },
                 singleLine = true,

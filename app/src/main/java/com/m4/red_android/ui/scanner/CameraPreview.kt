@@ -1,10 +1,8 @@
 package com.m4.red_android.ui.scanner
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
 import android.util.Size
-import android.view.ViewGroup
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView

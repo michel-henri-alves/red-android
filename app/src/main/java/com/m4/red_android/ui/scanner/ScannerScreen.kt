@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.m4.red_android.viewmodels.BarcodeViewModel
 import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 
 
@@ -55,9 +56,9 @@ fun ScannerScreen(
 
         ActionButtons(
             { goToPayment(onNavigate, viewModel, context) },
-            { println("clicou no 2") },
+//            { println("clicou no 2") },
             { cleanList(viewModel) },
-            { println("clicou no 4") },
+//            { println("clicou no 4") },
             viewModel,
             modifier = Modifier
                 .fillMaxWidth()

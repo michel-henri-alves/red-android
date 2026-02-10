@@ -9,9 +9,9 @@ import com.m4.red_android.viewmodels.BarcodeViewModel
 @Composable
 fun ActionButtons(
     onClick1: () -> Unit = {},
+//    onClick2: () -> Unit = {},
     onClick2: () -> Unit = {},
-    onClick3: () -> Unit = {},
-    onClick4: () -> Unit = {},
+//    onClick4: () -> Unit = {},
     viewModel: BarcodeViewModel,
     modifier: Modifier = Modifier
 ) {
@@ -22,7 +22,7 @@ fun ActionButtons(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         Button(onClick = onClick1) { Text("Vender") }
-        Button(onClick = onClick2) { Text("Buscar") }
-        Button(onClick = onClick3) { Text("Limpar") }
+//        Button(onClick = onClick2) { Text("Buscar") }
+        Button(onClick = onClick2) { Text("Limpar") }
     }
 }

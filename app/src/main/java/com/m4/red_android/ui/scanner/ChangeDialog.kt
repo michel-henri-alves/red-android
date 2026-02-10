@@ -30,7 +30,7 @@ fun ChangeDialog(
         },
         text = {
             Column {
-                Text("Devolva ${viewModel.change} para o cliente")
+                Text("Devolva R$%.2f de troco para o cliente".format(viewModel.change))
                 Spacer(Modifier.height(8.dp))
             }
         },

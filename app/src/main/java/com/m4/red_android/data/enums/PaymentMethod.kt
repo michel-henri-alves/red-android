@@ -5,5 +5,5 @@ enum class PaymentMethod(val label: String) {
     DEBIT("Débito"),
     CASH("Dinheiro"),
     PIX("Pix"),
-    TAB("Caderneta")
+//    TAB("Caderneta")
 }

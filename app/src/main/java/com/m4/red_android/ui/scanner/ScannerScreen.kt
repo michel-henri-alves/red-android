@@ -1,6 +1,7 @@
 package com.m4.red_android.ui.scanner
 
 import ActionButtons
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.m4.red_android.viewmodels.BarcodeViewModel
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
 fun ScannerScreen(
@@ -20,6 +25,7 @@ fun ScannerScreen(
 ) {
 
     val product = viewModel.product.collectAsState()
+    val context = LocalContext.current
 
     Column(
         modifier = modifier
@@ -49,10 +55,10 @@ fun ScannerScreen(
         )
 
         ActionButtons(
-            { goToPayment(onNavigate, viewModel) },
-            { println("clicou no 2") },
+            { goToPayment(onNavigate, viewModel, context) },
+//            { println("clicou no 2") },
             { cleanList(viewModel) },
-            { println("clicou no 4") },
+//            { println("clicou no 4") },
             viewModel,
             modifier = Modifier
                 .fillMaxWidth()
@@ -63,11 +69,19 @@ fun ScannerScreen(
 
 
 fun cleanList(viewModel: BarcodeViewModel) {
-    viewModel.clearProducts()
+    viewModel.resetState()
 }
 
-fun goToPayment(onNavigate: () -> Unit, viewModel: BarcodeViewModel) {
-    onNavigate()
+fun goToPayment(onNavigate: () -> Unit, viewModel: BarcodeViewModel, context: Context) {
+    if (viewModel.qty != 0)
+        onNavigate()
+    else
+        Toast.makeText(
+            context,
+            "O carrinho está vazio",
+            Toast.LENGTH_LONG
+        ).show()
+
 }
 
 //@Composable

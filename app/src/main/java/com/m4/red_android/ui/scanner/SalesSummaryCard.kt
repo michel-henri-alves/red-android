@@ -17,7 +17,9 @@ import androidx.compose.ui.unit.dp
 fun SaleSummaryCard(
     total: Double,
     paid: Double,
+    discount: Double,
     due: Double,
+    change: Double,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -47,11 +49,21 @@ fun SaleSummaryCard(
                 value = formatCurrency(paid)
             )
 
+            SummaryRow(
+                label = "Desconto",
+                value = formatCurrency(discount)
+            )
+
             Divider()
 
             SummaryRow(
                 label = "Valor devido",
                 value = formatCurrency(due),
+                highlight = true
+            )
+            SummaryRow(
+                label = "Troco",
+                value = formatCurrency(change),
                 highlight = true
             )
         }

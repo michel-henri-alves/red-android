@@ -144,6 +144,7 @@ class BarcodeViewModel : ViewModel() {
     fun removeProduct(product: Product) {
         _products.remove(product)
         _amount.value -= product.priceForSale
+        _due.value -= product.priceForSale
         _qty.value--
     }
 

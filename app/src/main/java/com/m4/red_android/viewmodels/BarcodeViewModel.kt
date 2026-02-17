@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.m4.red_android.data.api.RetrofitClient
 import com.m4.red_android.data.enums.PaymentMethod
+import com.m4.red_android.data.models.Item
 import com.m4.red_android.data.models.Product
 import com.m4.red_android.data.models.Sales
 import kotlinx.coroutines.delay
@@ -30,6 +31,8 @@ class BarcodeViewModel : ViewModel() {
 
     private val _codes = mutableStateListOf<String>()
     val codes: List<String> get() = _codes
+    private val _items = mutableStateListOf<Item>()
+    val items: List<Item> get() = _items
     private val _products = mutableStateListOf<Product>()
     val products: List<Product> get() = _products
     private var _amount = mutableStateOf(0.0)
@@ -50,7 +53,7 @@ class BarcodeViewModel : ViewModel() {
     private var _due = mutableStateOf(0.0)
     val due: Double get() = _due.value
     var dueText by mutableStateOf("")
-    private set
+        private set
 
     private var _showDiscountDialog = mutableStateOf(false)
     val showDiscountDialog: Boolean get() = _showDiscountDialog.value
@@ -78,8 +81,9 @@ class BarcodeViewModel : ViewModel() {
 
     sealed class UiEvent {
         object GoBack : UiEvent()
-        object SalesFinished: UiEvent()
-        data class RemainNotification(val valueReceived: Double, val valueRemain: Double) : UiEvent()
+        object SalesFinished : UiEvent()
+        data class RemainNotification(val valueReceived: Double, val valueRemain: Double) :
+            UiEvent()
 //        object RemaingNotification: UiEvent()
     }
 
@@ -108,11 +112,16 @@ class BarcodeViewModel : ViewModel() {
     }
 
     private fun fetchProduct(barcode: String) {
-        toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP,150)
+        toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP, 150)
         viewModelScope.launch {
             try {
                 val result = RetrofitClient.productApi.getProduct(barcode)
-                _products.add(0,result)
+                _products.add(0, result)
+
+                _items.add(
+                    buildItem(result.smartCode,1, result.name)
+                )
+
                 result.priceForSale
                 _amount.value += result.priceForSale
                 _due.value = _amount.value
@@ -121,8 +130,11 @@ class BarcodeViewModel : ViewModel() {
             } catch (e: retrofit2.HttpException) {
                 if (e.code() == 404) {
                     println(_amount.value)
-                    _products.add(0, Product(
-                        "0","Produto não encontrado ($barcode)",0.0))
+                    _products.add(
+                        0, Product(
+                            "0", "Produto não encontrado ($barcode)", 0.0
+                        )
+                    )
                 } else {
                     e.printStackTrace()
                     _product.value = null
@@ -136,6 +148,7 @@ class BarcodeViewModel : ViewModel() {
 
     fun clearProducts() {
         _products.clear()
+        _items.clear()
         _codes.clear()
         _amount.value = 0.0
         _qty.value = 0
@@ -143,6 +156,7 @@ class BarcodeViewModel : ViewModel() {
 
     fun removeProduct(product: Product) {
         _products.remove(product)
+        _items.remove(buildItem(product.smartCode,1, product.name))
         _amount.value -= product.priceForSale
         _due.value -= product.priceForSale
         _qty.value--
@@ -199,7 +213,7 @@ class BarcodeViewModel : ViewModel() {
 
 
         if (totalWithDiscount.compareTo(BigDecimal.ZERO) == 0) {
-           saveSale()
+            saveSale()
             viewModelScope.launch {
                 _uiEvent.emit(UiEvent.SalesFinished)
             }
@@ -209,13 +223,15 @@ class BarcodeViewModel : ViewModel() {
             _change.value = totalWithDiscount.abs().toDouble()
             setShowChangeDialog(true)
 
-        }
-        else {
+        } else {
             "faltam $totalWithDiscount"
             dueText = _due.value.toString()
             viewModelScope.launch {
                 _uiEvent.emit(
-                    UiEvent.RemainNotification(valueReceived = _paid.value, valueRemain = _due.value)
+                    UiEvent.RemainNotification(
+                        valueReceived = _paid.value,
+                        valueRemain = _due.value
+                    )
                 )
             }
         }
@@ -228,6 +244,8 @@ class BarcodeViewModel : ViewModel() {
         val sale = Sales(
 //            paymentMethod = listOf(paymentMethod!!),
 //            amountPaid = listOf(paymentAmountAsDouble()),
+            code = "1",
+            items = _items as List<Item>,
             paymentMethod = _paymentMethodList as List<PaymentMethod>,
             amountPaid = _amountPayedList,
             discount = discount,
@@ -258,6 +276,7 @@ class BarcodeViewModel : ViewModel() {
     fun resetState() {
         _codes.clear()
         _products.clear()
+        _items.clear()
 
         _amount.value = 0.0
         _paid.value = 0.0
@@ -274,6 +293,14 @@ class BarcodeViewModel : ViewModel() {
 
         _paymentMethodList?.clear()
         _amountPayedList?.clear()
+    }
+
+    fun buildItem(smartCode: String, quantity: Int, name: String): Item {
+        return Item(
+            smartCode = smartCode,
+            quantity = quantity,
+            name
+        )
     }
 
     private fun Double.toMoney(): BigDecimal =

@@ -119,7 +119,7 @@ class BarcodeViewModel : ViewModel() {
                 _products.add(0, result)
 
                 _items.add(
-                    buildItem(result.smartCode,1, result.name)
+                    buildItem(result)
                 )
 
                 result.priceForSale
@@ -132,7 +132,7 @@ class BarcodeViewModel : ViewModel() {
                     println(_amount.value)
                     _products.add(
                         0, Product(
-                            "0", "Produto não encontrado ($barcode)", 0.0
+                            "0", "Produto não encontrado ($barcode)", 0.0, "", "", ""
                         )
                     )
                 } else {
@@ -156,10 +156,12 @@ class BarcodeViewModel : ViewModel() {
 
     fun removeProduct(product: Product) {
         _products.remove(product)
-        _items.remove(buildItem(product.smartCode,1, product.name))
+        _items.remove(buildItem(product))
         _amount.value -= product.priceForSale
         _due.value -= product.priceForSale
-        _qty.value--
+        if (_qty.value > 0 && product.code != "") {
+            _qty.value--
+        }
     }
 
     fun selectPaymentMethod(method: PaymentMethod) {
@@ -295,11 +297,13 @@ class BarcodeViewModel : ViewModel() {
         _amountPayedList?.clear()
     }
 
-    fun buildItem(smartCode: String, quantity: Int, name: String): Item {
+    fun buildItem(product: Product): Item {
         return Item(
-            smartCode = smartCode,
-            quantity = quantity,
-            name
+            smartCode = product.smartCode,
+            quantity = product.quantity,
+            productName = product.name,
+            unitOfMeasurement = product.unitOfMeasurement,
+            code = product.code
         )
     }
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">192.168.1.167</domain>
         <domain includeSubdomains="true">https://1biotj4t46.execute-api.us-east-1.amazonaws.com</domain>
     </domain-config>
 </network-security-config>

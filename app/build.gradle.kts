@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.androidx.ui.unit)
     implementation(libs.runtime)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.runtime.runtime)
+    implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,6 +92,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("androidx.navigation:navigation-compose:2.7.2")
+    implementation("androidx.compose.material:material-icons-extended")
 
 //    implementation("com.google.dagger:hilt-android:2.57.1")
 //    ksp("com.google.dagger:hilt-android-compiler:2.57.1")

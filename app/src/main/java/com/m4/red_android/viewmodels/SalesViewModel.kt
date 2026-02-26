@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import retrofit2.HttpException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -26,40 +27,50 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
-//@HiltViewModel
-class BarcodeViewModel : ViewModel() {
+class SalesViewModel : ViewModel() {
 
     var isBarcodeDetected by mutableStateOf(false)
         private set
 
     private val _codes = mutableStateListOf<String>()
     val codes: List<String> get() = _codes
+
     private val _items = mutableStateListOf<Item>()
     val items: List<Item> get() = _items
+
     private val _products = mutableStateListOf<Product>()
     val products: List<Product> get() = _products
+
     private var _amount = mutableStateOf(0.0)
     val amount: Double get() = _amount.value
+
     private var _qty = mutableStateOf(0)
     val qty: Int get() = _qty.value
+
     private val _paymentMethod = mutableStateOf<PaymentMethod?>(null)
     val paymentMethod: PaymentMethod? get() = _paymentMethod.value
+
     var paymentAmount by mutableStateOf("")
         private set
+
     private var _paid = mutableStateOf(0.0)
     val paid: Double get() = _paid.value
+
     private var _discount = mutableStateOf(0.0)
     val discount: Double get() = _discount.value
+
     private var _change = mutableStateOf(0.0)
     val change: Double get() = _change.value
 
     private var _due = mutableStateOf(0.0)
     val due: Double get() = _due.value
+
     var dueText by mutableStateOf("")
         private set
 
     private var _showDiscountDialog = mutableStateOf(false)
     val showDiscountDialog: Boolean get() = _showDiscountDialog.value
+
     private var _showChangeDialog = mutableStateOf(false)
     val showChangeDialog: Boolean get() = _showChangeDialog.value
 
@@ -133,7 +144,7 @@ class BarcodeViewModel : ViewModel() {
                 _due.value = _amount.value
                 _qty.value++
                 println(_amount.value)
-            } catch (e: retrofit2.HttpException) {
+            } catch (e: HttpException) {
                 if (e.code() == 404) {
                     println(_amount.value)
                     _products.add(

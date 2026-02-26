@@ -16,6 +16,8 @@ compose-compiler = "1.5.3"
 uiUnit = "1.10.0"
 runtimeVersion = "1.10.0"
 material3 = "1.4.0"
+androidxRuntime = "1.10.3"
+foundationLayout = "1.10.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +49,8 @@ compose-activity = { module = "androidx.activity:activity-compose" }
 androidx-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
 runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtimeVersion" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-compose-runtime-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "androidxRuntime" }
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 
 #hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 #hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }

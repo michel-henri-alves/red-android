@@ -16,7 +16,8 @@ import com.m4.red_android.viewmodels.BarcodeViewModel
 @Composable
 fun TextInfo(
     viewModel: BarcodeViewModel = viewModel(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -25,14 +26,14 @@ fun TextInfo(
         Text(
             text = String.format("R$ %.2f", viewModel.amount),
             style = MaterialTheme.typography.titleLarge,
-            color = androidx.compose.ui.graphics.Color.White
+            color = androidx.compose.ui.graphics.Color.Black
 
         )
 
         Text(
             text = "Qtde: " + viewModel.qty,
             style = MaterialTheme.typography.titleLarge,
-            color = androidx.compose.ui.graphics.Color.White
+            color = androidx.compose.ui.graphics.Color.Black
 
         )
     }

@@ -10,43 +10,42 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.m4.red_android.viewmodels.BarcodeViewModel
-import com.m4.red_android.viewmodels.ProductViewModel
 
 @Composable
-fun ScannerScreen(
-    viewModel: ProductViewModel,
-    onBack: () -> Unit,
-//    context: Context
+fun PhoneLayout(
+    viewModel: BarcodeViewModel,
+    onNavigate: () -> Unit,
+    context: Context
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
 
         Column(modifier = Modifier.fillMaxSize()) {
 
             CameraPreview(
-//              viewModel = viewModel,
+//                viewModel = viewModel,
                 onBarcodeDetected = { code ->
-                    viewModel.onSmartCodeChange(code)
+                    viewModel.addCode(code)
                 },
-                isDetected = true,
+                isDetected = viewModel.isBarcodeDetected,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.35f)
                     .heightIn(min = 180.dp)
             )
 
-//            BarcodeList(
-//                viewModel = viewModel,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .weight(1f)
-//            )
-//
-//            BottomPanel(
-//                viewModel = viewModel,
-//                onNavigate = onNavigate,
-//                context = context,
-//                modifier = Modifier.fillMaxWidth()
-//            )
+            BarcodeList(
+                viewModel = viewModel,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
+
+            BottomPanel(
+                viewModel = viewModel,
+                onNavigate = onNavigate,
+                context = context,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

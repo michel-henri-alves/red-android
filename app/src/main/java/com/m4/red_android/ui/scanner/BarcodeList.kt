@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.m4.red_android.viewmodels.BarcodeViewModel
 
@@ -25,30 +27,28 @@ fun BarcodeList(
     viewModel: BarcodeViewModel,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(top = 100.dp)
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(viewModel.products) { product ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            indication = null, // remove o ripple OU evita o erro
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { viewModel.removeProduct(product) },
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Text(
-                        text = product.name +" "+ String.format("R$ %.2f", product.priceForSale),
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
+        items(viewModel.products) { product ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { viewModel.removeProduct(product) },
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White,
+                ),
+            ) {
+                Text(
+                    text = product.name + " " +
+                            String.format("R$ %.2f", product.priceForSale),
+                    modifier = Modifier.padding(16.dp)
+                )
             }
         }
     }

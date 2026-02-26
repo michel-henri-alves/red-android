@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -73,6 +76,7 @@ fun PaymentInputCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(
+
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -83,15 +87,17 @@ fun PaymentInputCard(
             )
 
             OutlinedTextField(
-//                value = viewModel.paymentAmount,
                 value = viewModel.dueText,
                 onValueChange = viewModel::onPaymentAmountChange,
-                label = { Text("Valor a pagar") },
+                label = { Text("Valor recebido") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = androidx.compose.ui.graphics.Color.White,
+                )
             )
 
             Row(
@@ -100,12 +106,20 @@ fun PaymentInputCard(
             ) {
                 Button(
                     onClick = { discountButton(viewModel) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(228, 88, 88),
+                        contentColor = Color.White
+                    ),
                     enabled = viewModel.discount == 0.0 && viewModel.due > 0.0
                 ) {
                     Text("Desconto")
                 }
                 Button(
                     onClick = { paymentFinishing(viewModel, context) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(228, 88, 88),
+                        contentColor = Color.White
+                    ),
                     enabled = viewModel.paymentAmountAsDouble() > 0.0 && viewModel.due > 0.0
                 ) {
                     Text("Receber")

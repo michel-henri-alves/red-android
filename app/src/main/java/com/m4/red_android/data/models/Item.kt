@@ -5,6 +5,7 @@ data class Item (
     val quantity: String,
     val productName: String,
     val unitOfMeasurement: String,
+    val price: Double,
     val code: String,
 
 )

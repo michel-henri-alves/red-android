@@ -30,7 +30,6 @@ import com.m4.red_android.viewmodels.ProductViewModel
 @Composable
 fun CreateProduct(
     viewModel: ProductViewModel,
-//    onNavigate: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -124,9 +123,6 @@ fun CreateProduct(
                                     "Digite ou aproxime o código de barras",
                                     Toast.LENGTH_LONG
                                 ).show()
-//                                onNavigate()
-                                // abrir camera aqui
-                                //onOpenCamera()
                             }
                         ) {
                             Icon(
@@ -330,7 +326,3 @@ fun createFinish(viewModel: ProductViewModel, context: Context) {
 fun cleanForm(viewModel: ProductViewModel, context: Context) {
     viewModel.cleanForm()
 }
-
-//fun openCamera(viewModel: ProductViewModel, context: Context) {
-//    //navController.navigate("barcode_camera")
-//}

@@ -1,0 +1,23 @@
+#!/bin/sh
+set -eu
+
+if [ "${RED_SKIP_HOOKS:-}" = "1" ]; then
+  exit 0
+fi
+
+blocked_files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '(^|/)\.env(\.|$)|(^|/)\.env\.(local|production)$' | grep -v -E '(^|/)\.env\.example$|(^|/)\.env\.test$' || true)
+if [ -n "$blocked_files" ]; then
+  echo "Blocked commit: staged env files may contain secrets:" >&2
+  echo "$blocked_files" >&2
+  exit 1
+fi
+
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
+for file in $staged_files; do
+  if git show ":$file" 2>/dev/null | grep -Eiq '(AKIA[0-9A-Z]{16}|secret[_-]?key|private[_-]?key|jwt[_-]?secret|password\s*=|token\s*=|Bearer [A-Za-z0-9._-]{20,})'; then
+    echo "Blocked commit: possible secret in staged file: $file" >&2
+    exit 1
+  fi
+done
+
+echo "pre-commit hook passed."

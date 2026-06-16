@@ -1,0 +1,26 @@
+{
+  "name": "red-android-sdd",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SDD and AI-assisted development tooling for the RED Android app.",
+  "scripts": {
+    "build": "./gradlew assembleDebug",
+    "lint": "./gradlew lintDebug",
+    "test": "./gradlew testDebugUnitTest",
+    "connected:test": "./gradlew connectedDebugAndroidTest",
+    "contracts:check": "node scripts/check-backend-contract.js",
+    "sdd:new": "node scripts/sdd-new.js",
+    "sdd:new:translate": "node scripts/sdd-new.js --translate",
+    "sdd:new:ai": "node scripts/sdd-new-ai.js",
+    "sdd:agent": "node scripts/sdd-agent.js",
+    "sdd:agents": "node scripts/sdd-agents.js",
+    "sdd:check": "node scripts/sdd-check.js",
+    "sdd:estimate": "node scripts/sdd-estimate.js",
+    "sdd:run": "node scripts/sdd-run.js",
+    "hooks:install": "node scripts/install-git-hooks.js",
+    "sdd:usage": "node scripts/sdd-usage-report.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+if [ "${RED_SKIP_HOOKS:-}" = "1" ]; then
+  exit 0
+fi
+
+npm run sdd:check
+npm run contracts:check
+npm run test
+npm run lint
+npm run build

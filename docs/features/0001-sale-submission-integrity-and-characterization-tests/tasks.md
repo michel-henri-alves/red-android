@@ -1,0 +1,62 @@
+# Sale Submission Integrity And Characterization Tests Tasks
+
+- [x] T001 - REQ-SALE-SUBMISSION-INTEGRITY-001, REQ-SALE-SUBMISSION-INTEGRITY-002, REQ-SALE-SUBMISSION-INTEGRITY-003, REQ-SALE-SUBMISSION-INTEGRITY-004 Review the sale-submission boundary, state machine, immutable snapshot, retry semantics, and cent-safe representation.
+  - Agent: `android-architecture-engineer`
+  - Depends on: none
+  - Verification: architecture decision is recorded in `plan.md` or the feature run with no unresolved contract decision
+  - Evidence: accepted `Architecture Decision` in `plan.md` on 2026-08-14; no blocking contract decision remains
+- [x] T002 - REQ-SALE-SUBMISSION-INTEGRITY-006 Add deterministic JVM coroutine test support and a reusable `MainDispatcherRule`.
+  - Agent: `test-engineer`
+  - Depends on: T001
+  - Verification: `npm run test -- --tests "com.m4.red_android.testing.MainDispatcherRuleTest"`
+  - Evidence: `kotlinx-coroutines-test`, `MainDispatcherRule`, and its scheduler-control test added; payload/state fakes moved to the tasks that introduce their production seams. Focused test passed with JDK 17 on 2026-08-14.
+- [x] T003 - REQ-SALE-SUBMISSION-INTEGRITY-005, REQ-SALE-SUBMISSION-INTEGRITY-006 Add cent-safe calculation and validation characterization tests for exact, partial, excess, and invalid payments.
+  - Agent: `test-engineer`
+  - Depends on: T001
+  - Verification: `npm run test -- --tests "com.m4.red_android.sales.SaleCalculatorTest"`
+  - Evidence: test-first contract covers decimal parsing, exact/partial/excess payments, discount, invalid inputs, legacy `Double` conversion, and overflow; initially red until T004 provided `Money`, `Payment`, and `SaleCalculator`, then passed with JDK 17 on 2026-08-14.
+- [x] T004 - REQ-SALE-SUBMISSION-INTEGRITY-005 Implement cent-safe sale calculation, validation, and explicit mapping to the existing backend numeric DTO contract.
+  - Agent: `implementation-engineer`
+  - Depends on: T003
+  - Verification: focused `SaleCalculatorTest` passes
+  - Evidence: `Money` stores `Long` cents, parsing and legacy conversion reject non-finite/fractional-cent values, calculator uses exact arithmetic, and `toLegacyDouble()` is isolated as the existing numeric DTO boundary. `SaleCalculatorTest` passed with JDK 17 on 2026-08-14 (`BUILD SUCCESSFUL`).
+- [x] T005 - REQ-SALE-SUBMISSION-INTEGRITY-001 Introduce the sales repository boundary and fake, add payload-capture tests, and create an immutable sale snapshot before asynchronous submission.
+  - Agent: `implementation-engineer`
+  - Depends on: T002, T004
+  - Verification: payload-capture tests prove all pre-reset items and payments are submitted
+  - Evidence: `SaleSnapshot` copies every item and payment into immutable cent-safe values; `SalesRepository`, `RetrofitSalesRepository`, and `FakeSalesRepository` establish the suspending boundary; `SaleSnapshotTest` proves clearing the source draft cannot empty the captured payload. Focused test passed with JDK 17 on 2026-08-15 (`BUILD SUCCESSFUL`).
+- [x] T006 - REQ-SALE-SUBMISSION-INTEGRITY-002, REQ-SALE-SUBMISSION-INTEGRITY-004 Add submission-state tests and implement a single-flight state that resets and emits completion exactly once after confirmed success.
+  - Agent: `implementation-engineer`
+  - Depends on: T005
+  - Verification: success and concurrent-submit tests pass with one repository request
+  - Evidence: `SaleSubmissionCoordinator` serializes the pre-suspension transition with a `Mutex`, accepts submissions only from `Ready`, and publishes one reset callback plus one buffered completion effect after repository success. `BarcodeViewModel` now resets and emits its completion/navigation events only from that confirmed-success effect; final UI actions are disabled while submitting. Focused success and concurrent-submit tests passed with JDK 17 on 2026-08-15 (`BUILD SUCCESSFUL`).
+- [x] T007 - REQ-SALE-SUBMISSION-INTEGRITY-003 Add failure/retry tests and implement retryable failure behavior that preserves the complete cart/payment state.
+  - Agent: `implementation-engineer`
+  - Depends on: T006
+  - Verification: failure/retry tests pass without duplicated payment entries or premature navigation
+  - Evidence: repository failure transitions to a modeled retryable error while retaining the exact immutable snapshot; no reset or completion occurs on failure. `retry()` accepts only `Failed`, resubmits the same snapshot instance, and remains single-flight. Payment UI preserves visible state, blocks new payment mutation, and exposes an actionable retry control. Focused failure/retry test passed with JDK 17 on 2026-08-15 (`BUILD SUCCESSFUL`).
+- [x] T008 - REQ-SALE-SUBMISSION-INTEGRITY-006 Consolidate or delegate the duplicated sale behavior so `BarcodeViewModel` and `SalesViewModel` cannot diverge.
+  - Agent: `implementation-engineer`
+  - Depends on: T007
+  - Verification: `rg "class (BarcodeViewModel|SalesViewModel)" app/src/main` and focused tests demonstrate one authoritative behavior path
+  - Evidence: repository-wide reference search confirmed `SalesViewModel` had no consumers while every POS screen uses the `BarcodeViewModel` created by `AppNavigator`; the orphaned duplicate and its fire-and-forget submission path were removed. `rg` now finds one sale-flow ViewModel class and direct `postSales` usage only inside `RetrofitSalesRepository`; the focused sales regression passed with JDK 17 on 2026-08-15 (`BUILD SUCCESSFUL`).
+- [x] T009 - REQ-SALE-SUBMISSION-INTEGRITY-001, REQ-SALE-SUBMISSION-INTEGRITY-002, REQ-SALE-SUBMISSION-INTEGRITY-003 Review compatibility with the existing `POST /sales` request contract.
+  - Agent: `backend-contract-reviewer`
+  - Depends on: T008
+  - Verification: `npm run contracts:check`
+  - Evidence: Android now serializes a dedicated `SalesRequest` containing only backend fields, non-null numeric `amountPaid`, and an ISO-8601 realization timestamp with the Brasilia offset. The backend no longer requires redundant item-level `companyId`, which is inherited from the authenticated sale, and its OpenAPI generator now describes nested sale items and numeric arrays correctly. Android serialization tests, 41 focused backend tests, `npm run contracts:check`, and backend `npm run openapi:check` passed on 2026-08-15.
+- [x] T010 - REQ-SALE-SUBMISSION-INTEGRITY-001, REQ-SALE-SUBMISSION-INTEGRITY-002, REQ-SALE-SUBMISSION-INTEGRITY-003, REQ-SALE-SUBMISSION-INTEGRITY-004, REQ-SALE-SUBMISSION-INTEGRITY-005, REQ-SALE-SUBMISSION-INTEGRITY-006 Update canonical app documentation and review the completed diff for correctness and regression risk.
+  - Agent: `code-reviewer`
+  - Depends on: T009
+  - Verification: `docs/specs/app.spec.md`, `docs/tasks/app.tasks.md`, and `docs/memory/project.memory.md` record the durable rules
+  - Evidence: canonical app spec/tasks/memory now record confirmed-success completion, immutable retry, single-flight ownership, cent-safe production arithmetic, and the exact API boundary. Review found one high issue—the production ViewModel still used legacy floating-point payment calculations despite the tested calculator—and fixed it by making `Payment`, `Money`, and `SaleCalculator` the active path. Invalid payment/discount input now exposes feedback instead of throwing, and Compose no longer resets input on recomposition. Full JVM tests, contract/SDD checks, and `git diff --check` passed on 2026-08-15; no open critical/high review finding remains.
+- [x] T011 - REQ-SALE-SUBMISSION-INTEGRITY-006 Run focused and project quality gates and record evidence.
+  - Agent: `test-engineer`
+  - Depends on: T010
+  - Verification: `npm run sdd:check`, `npm run contracts:check`, `npm run test`, `npm run test:coverage`, `npm run lint`, `npm run static:analysis`, and `npm run build`
+  - Evidence: all listed gates passed with JDK 17 on 2026-08-15. The JVM suite ran 20 tests across 6 suites with zero failures/errors/skips; JaCoCo generated XML/HTML and reports 176/181 covered lines (97.2%) and 60/82 covered branches (73.2%) for `com.m4.red_android.sales`. Lint initially found one manifest hardware-declaration error; adding optional `android.hardware.camera` resolved it and the repeated lint/static-analysis gates passed. `assembleDebug` completed successfully. Slow response, failure/retry, and rapid concurrent submits are covered deterministically at the coordinator boundary; visual device/emulator confirmation remains for T012.
+- [x] T012 - REQ-SALE-SUBMISSION-INTEGRITY-001, REQ-SALE-SUBMISSION-INTEGRITY-002, REQ-SALE-SUBMISSION-INTEGRITY-003, REQ-SALE-SUBMISSION-INTEGRITY-004, REQ-SALE-SUBMISSION-INTEGRITY-005, REQ-SALE-SUBMISSION-INTEGRITY-006 Perform final critical-feature evidence and closure review.
+  - Agent: `release-gate-reviewer`
+  - Depends on: T011
+  - Verification: no open critical/high finding, all requirements trace to passing tests, and feature evidence is recorded
+  - Evidence: final matrix in `evidence.md` traces every requirement to implementation and passing tests; recorded SDD run `runs/2026-08-15T14-35-30-554Z.md` passed all default closure gates. Debug APK was installed and launched on a Motorola moto g35 5G running Android 14/API 34; the POS/camera UI rendered, the process remained active, and logs contained no app crash/ANR. No critical/high finding remains; backend idempotency after ambiguous timeout/process death is an accepted future contract risk.

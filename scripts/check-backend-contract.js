@@ -25,7 +25,43 @@ if (!fs.existsSync(backendOpenApi)) {
   warnings.push(`Backend OpenAPI not found: ${path.relative(root, backendOpenApi)}`);
 } else {
   try {
-    JSON.parse(read(backendOpenApi));
+    const openApi = JSON.parse(read(backendOpenApi));
+    const sales = openApi.components?.schemas?.Sales;
+    const postSalesSchema = openApi.paths?.['/sales']?.post?.requestBody?.content?.['application/json']?.schema;
+
+    if (postSalesSchema?.$ref !== '#/components/schemas/Sales') {
+      failures.push('POST /sales must reference the Sales request schema.');
+    }
+    if (!sales) {
+      failures.push('Backend OpenAPI is missing components.schemas.Sales.');
+    } else {
+      const expectedTypes = {
+        items: 'array',
+        paymentMethod: 'array',
+        amountPaid: 'array',
+        discount: 'number',
+        change: 'number',
+        vendor: 'string',
+        realizedAt: 'string'
+      };
+
+      Object.entries(expectedTypes).forEach(([field, type]) => {
+        if (sales.properties?.[field]?.type !== type) {
+          failures.push(`Sales.${field} must be OpenAPI type ${type}.`);
+        }
+      });
+      if (sales.properties?.items?.items?.type !== 'object') {
+        failures.push('Sales.items entries must be objects.');
+      }
+      if (sales.properties?.amountPaid?.items?.type !== 'number') {
+        failures.push('Sales.amountPaid entries must be numbers.');
+      }
+      ['items', 'paymentMethod', 'amountPaid'].forEach((field) => {
+        if (!sales.required?.includes(field)) {
+          failures.push(`Sales.${field} must be required.`);
+        }
+      });
+    }
   } catch (error) {
     failures.push(`Backend OpenAPI is not valid JSON: ${error.message}`);
   }
@@ -44,6 +80,19 @@ retrofitFiles.forEach((file) => {
     warnings.push(`Review auth/tenant header construction in ${path.relative(root, file)}`);
   }
 });
+
+const salesRequestFile = path.join(sourceRoot, 'com', 'm4', 'red_android', 'data', 'models', 'SalesRequest.kt');
+if (!fs.existsSync(salesRequestFile)) {
+  failures.push('Android SalesRequest DTO is missing.');
+} else {
+  const salesRequest = read(salesRequestFile);
+  if (!/val amountPaid:\s*List<Double>/.test(salesRequest)) {
+    failures.push('Android amountPaid must be a non-null List<Double>.');
+  }
+  if (/data class SalesRequest[\s\S]*?\bval (code|companyId):/.test(salesRequest)) {
+    failures.push('Android SalesRequest must not send local code or tenant fields.');
+  }
+}
 
 if (warnings.length) {
   console.log('Contract warnings:');

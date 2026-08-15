@@ -47,8 +47,9 @@ fun Payment(
         DiscountDialog(
             onDismiss = { viewModel.setShowDiscountDialog(false) },
             onConfirm = { discount ->
-                viewModel.applyDiscount(discount)
-                viewModel.setShowDiscountDialog(false)
+                if (viewModel.applyDiscount(discount)) {
+                    viewModel.setShowDiscountDialog(false)
+                }
             }
         )
     }
@@ -62,4 +63,3 @@ fun Payment(
         )
     }
 }
-

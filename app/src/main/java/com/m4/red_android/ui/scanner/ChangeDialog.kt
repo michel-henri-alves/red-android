@@ -8,6 +8,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,12 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.m4.red_android.viewmodels.BarcodeViewModel
+import com.m4.red_android.sales.SaleSubmissionState
 
 @Composable
 fun ChangeDialog(
     onDismiss: () -> Unit,
     viewModel: BarcodeViewModel,
 ) {
+    val submissionState by viewModel.submissionState.collectAsState()
+    val failedSubmission = submissionState as? SaleSubmissionState.Failed
+    val canFinalize = submissionState is SaleSubmissionState.Ready ||
+        failedSubmission?.error?.isRetryable == true
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -31,16 +37,26 @@ fun ChangeDialog(
         text = {
             Column {
                 Text("Devolva R$%.2f de troco para o cliente".format(viewModel.change))
+                if (failedSubmission != null) {
+                    Text(
+                        text = failedSubmission.error.message,
+                    )
+                }
                 Spacer(Modifier.height(8.dp))
             }
         },
         confirmButton = {
             Button(
+                enabled = canFinalize,
                 onClick = {
-                    viewModel.saveSale()
+                    if (failedSubmission != null) {
+                        viewModel.retrySale()
+                    } else {
+                        viewModel.saveSale()
+                    }
                 }
             ) {
-                Text("Devolvido")
+                Text(if (failedSubmission != null) "Tentar novamente" else "Devolvido")
             }
         },
     )

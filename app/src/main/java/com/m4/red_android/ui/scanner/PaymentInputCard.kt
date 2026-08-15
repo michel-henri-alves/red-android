@@ -18,16 +18,15 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.m4.red_android.viewmodels.BarcodeViewModel
+import com.m4.red_android.sales.SaleSubmissionState
 
 @Composable
 fun PaymentInputCard(
@@ -37,11 +36,13 @@ fun PaymentInputCard(
 ) {
 
 
-    var input by remember { mutableStateOf("") }
-    viewModel.setPaymentAmount()
     val context = LocalContext.current
+    val submissionState by viewModel.submissionState.collectAsState()
+    val failedSubmission = submissionState as? SaleSubmissionState.Failed
+    val isSubmissionLocked = submissionState !is SaleSubmissionState.Ready
 
     LaunchedEffect(Unit) {
+        viewModel.setPaymentAmount()
         viewModel.uiEvent.collect { event ->
             when (event) {
                 is BarcodeViewModel.UiEvent.GoBack -> {
@@ -86,6 +87,26 @@ fun PaymentInputCard(
                 style = MaterialTheme.typography.titleMedium
             )
 
+            if (failedSubmission != null) {
+                Text(
+                    text = failedSubmission.error.message,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Button(
+                    onClick = viewModel::retrySale,
+                    enabled = failedSubmission.error.isRetryable,
+                ) {
+                    Text("Tentar novamente")
+                }
+            }
+
+            viewModel.validationError?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+
             OutlinedTextField(
                 value = viewModel.dueText,
                 onValueChange = viewModel::onPaymentAmountChange,
@@ -110,7 +131,9 @@ fun PaymentInputCard(
                         containerColor = Color(228, 88, 88),
                         contentColor = Color.White
                     ),
-                    enabled = viewModel.discount == 0.0 && viewModel.due > 0.0
+                    enabled = viewModel.discount == 0.0 &&
+                        viewModel.due > 0.0 &&
+                        !isSubmissionLocked
                 ) {
                     Text("Desconto")
                 }
@@ -120,7 +143,9 @@ fun PaymentInputCard(
                         containerColor = Color(228, 88, 88),
                         contentColor = Color.White
                     ),
-                    enabled = viewModel.paymentAmountAsDouble() > 0.0 && viewModel.due > 0.0
+                    enabled = viewModel.paymentAmountAsDouble() > 0.0 &&
+                        viewModel.due > 0.0 &&
+                        !isSubmissionLocked
                 ) {
                     Text("Receber")
                 }

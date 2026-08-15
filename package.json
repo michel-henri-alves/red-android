@@ -7,6 +7,9 @@
     "build": "./gradlew assembleDebug",
     "lint": "./gradlew lintDebug",
     "test": "./gradlew testDebugUnitTest",
+    "test:coverage": "./gradlew jacocoTestReport",
+    "static:analysis": "./gradlew lintDebug",
+    "quality:check": "./gradlew testDebugUnitTest jacocoTestReport lintDebug",
     "connected:test": "./gradlew connectedDebugAndroidTest",
     "contracts:check": "node scripts/check-backend-contract.js",
     "sdd:new": "node scripts/sdd-new.js",
@@ -18,7 +21,9 @@
     "sdd:estimate": "node scripts/sdd-estimate.js",
     "sdd:run": "node scripts/sdd-run.js",
     "hooks:install": "node scripts/install-git-hooks.js",
-    "sdd:usage": "node scripts/sdd-usage-report.js"
+    "sdd:usage": "node scripts/sdd-usage-report.js",
+    "sdd:new:interactive": "node scripts/sdd-new-interactive.js",
+    "security:scan": "node scripts/security-scan.js"
   },
   "engines": {
     "node": ">=18"

@@ -31,6 +31,7 @@ Generate an agent prompt for a feature:
 ```bash
 npm run sdd:agent -- 0001-feature-slug spec-reviewer
 npm run sdd:agent -- 0001-feature-slug planner
+npm run sdd:agent -- 0001-feature-slug architecture
 ```
 
 Run verification and record evidence:
@@ -50,7 +51,8 @@ The default mobile gate is:
 ```bash
 npm run sdd:check
 npm run contracts:check
-npm run test
-npm run lint
+npm run quality:check
 npm run build
 ```
+
+For focused feedback, use `npm run test:coverage` or `npm run static:analysis`.

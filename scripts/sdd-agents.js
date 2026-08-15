@@ -8,6 +8,8 @@ const skillsDir = path.join(root, 'ai/skills');
 const recommendedOrder = [
   'sdd-spec-reviewer.md',
   'sdd-planner.md',
+  'android-architecture-engineer.md',
+  'kotlin-software-engineer.md',
   'implementation-engineer.md',
   'test-engineer.md',
   'backend-contract-reviewer.md',

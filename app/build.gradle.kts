@@ -1,7 +1,10 @@
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    jacoco
 //    id("com.google.devtools.ksp")
 //    id("com.google.dagger.hilt.android")
 }
@@ -46,6 +49,54 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = false
+        }
+        animationsDisabled = true
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+val jacocoExclusions = listOf(
+    "**/R.class",
+    "**/R\$*.class",
+    "**/BuildConfig.*",
+    "**/Manifest*.*",
+    "**/*Preview*.*"
+)
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    group = "verification"
+    description = "Runs debug unit tests and creates XML and HTML coverage reports."
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+    }
+
+    classDirectories.setFrom(
+        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+            exclude(jacocoExclusions)
+        },
+        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
+            exclude(jacocoExclusions)
+        }
+    )
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    executionData.setFrom(
+        fileTree(layout.buildDirectory) {
+            include("jacoco/testDebugUnitTest.exec")
+            include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+        }
+    )
 }
 
 dependencies {
@@ -60,6 +111,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime.runtime)
     implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 

@@ -18,6 +18,7 @@ runtimeVersion = "1.10.0"
 material3 = "1.4.0"
 androidxRuntime = "1.10.3"
 foundationLayout = "1.10.3"
+coroutines = "1.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -51,6 +52,7 @@ runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = 
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-runtime-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "androidxRuntime" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 #hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 #hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }

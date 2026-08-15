@@ -21,6 +21,8 @@ const requiredFiles = [
 const requiredAgents = [
   'ai/agents/sdd-spec-reviewer.md',
   'ai/agents/sdd-planner.md',
+  'ai/agents/android-architecture-engineer.md',
+  'ai/agents/kotlin-software-engineer.md',
   'ai/agents/implementation-engineer.md',
   'ai/agents/test-engineer.md',
   'ai/agents/backend-contract-reviewer.md',
@@ -125,6 +127,9 @@ function checkPackageScripts() {
     'build',
     'lint',
     'test',
+    'test:coverage',
+    'static:analysis',
+    'quality:check',
     'contracts:check',
     'sdd:new',
     'sdd:new:translate',

@@ -6,6 +6,8 @@ const root = path.resolve(__dirname, '..');
 const agents = {
   'spec-reviewer': 'ai/agents/sdd-spec-reviewer.md',
   planner: 'ai/agents/sdd-planner.md',
+  architecture: 'ai/agents/android-architecture-engineer.md',
+  'kotlin-software-engineer': 'ai/agents/kotlin-software-engineer.md',
   implementation: 'ai/agents/implementation-engineer.md',
   test: 'ai/agents/test-engineer.md',
   'backend-contract': 'ai/agents/backend-contract-reviewer.md',

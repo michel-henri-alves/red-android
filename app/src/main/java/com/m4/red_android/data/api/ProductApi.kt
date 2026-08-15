@@ -2,7 +2,6 @@ package com.m4.red_android.data.api
 
 import com.m4.red_android.data.models.Product
 import com.m4.red_android.data.models.Product1
-import com.m4.red_android.data.models.Sales
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

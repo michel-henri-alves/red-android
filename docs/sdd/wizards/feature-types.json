@@ -1,0 +1,66 @@
+{
+  "projectName": "RED Android",
+  "defaultVerification": ["npm run sdd:check", "npm run lint", "npm test"],
+  "impactOptions": [
+    { "id": "ui", "label": "Changes screen, navigation, or user workflow" },
+    { "id": "api", "label": "Consumes or changes API contract" },
+    { "id": "state", "label": "Changes local state, cache, or validation behavior" },
+    { "id": "offline", "label": "Changes offline, sync, or retry behavior" },
+    { "id": "auth", "label": "Changes auth, role, or tenant behavior" },
+    { "id": "cross_project", "label": "Requires backend or web coordination" }
+  ],
+  "featureTypes": [
+    {
+      "id": "screen_change",
+      "label": "Screen/workflow change",
+      "description": "Activity, fragment, Compose screen, navigation, or user flow.",
+      "defaultImpacts": ["ui"],
+      "prompts": [
+        { "id": "uiStates", "question": "Loading, error, empty, success, permission, and offline states", "kind": "text", "required": true },
+        { "id": "apiContracts", "question": "API endpoints/data shape used by the screen", "kind": "text", "default": "No API contract assumptions identified yet." }
+      ]
+    },
+    {
+      "id": "sync_data",
+      "label": "Sync/data behavior",
+      "description": "Repository, local cache, offline, retry, or persistence behavior.",
+      "defaultImpacts": ["api", "state", "offline"],
+      "prompts": [
+        { "id": "apiContracts", "question": "Remote/local data contract and sync rules", "kind": "text", "required": true },
+        { "id": "dataImpact", "question": "Local storage, cache, migration, or compatibility impact", "kind": "text", "required": true },
+        { "id": "uiStates", "question": "User-visible sync/offline states", "kind": "text", "default": "No user-visible state change described yet." }
+      ]
+    },
+    {
+      "id": "api_contract_mobile",
+      "label": "API contract mobile integration",
+      "description": "Mobile integration around changed backend contracts.",
+      "defaultImpacts": ["api", "cross_project"],
+      "prompts": [
+        { "id": "apiContracts", "question": "Backend contract, request/response, and compatibility expectations", "kind": "text", "required": true },
+        { "id": "uiStates", "question": "Mobile states and fallback behavior for this contract", "kind": "text", "required": true }
+      ]
+    },
+    {
+      "id": "bugfix_refactor",
+      "label": "Bugfix/refactor",
+      "description": "Behavior fix or internal mobile change with focused verification.",
+      "defaultImpacts": [],
+      "prompts": [
+        { "id": "uiStates", "question": "User-visible behavior that must remain or be fixed", "kind": "text", "default": "No visible UI state change expected." },
+        { "id": "apiContracts", "question": "API behavior that must not change", "kind": "text", "default": "No API contract change expected." }
+      ]
+    }
+  ],
+  "commonPrompts": [
+    { "id": "problem", "question": "Problem this solves", "kind": "text", "required": true },
+    { "id": "scope", "question": "Scope/change summary", "kind": "text", "required": true },
+    { "id": "workflow", "question": "User workflow impacted", "kind": "text", "default": "No user workflow change described yet." },
+    { "id": "requirements", "question": "Requirements, separated by semicolon", "kind": "list", "required": true },
+    { "id": "acceptance", "question": "Acceptance criteria, separated by semicolon", "kind": "list", "required": true },
+    { "id": "files", "question": "Expected files, comma-separated", "kind": "files" },
+    { "id": "outOfScope", "question": "Out of scope, separated by semicolon", "kind": "list", "default": "No explicit out-of-scope items yet." },
+    { "id": "risks", "question": "Risks, separated by semicolon", "kind": "list", "default": "No known risks yet." },
+    { "id": "verificationCommands", "question": "Verification commands, separated by semicolon", "kind": "list", "default": "npm run sdd:check; npm run lint; npm test" }
+  ]
+}

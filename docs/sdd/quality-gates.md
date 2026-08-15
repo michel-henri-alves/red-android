@@ -5,10 +5,20 @@
 ```bash
 npm run sdd:check
 npm run contracts:check
-npm run test
-npm run lint
+npm run quality:check
 npm run build
 ```
+
+`quality:check` runs JVM unit tests, produces JaCoCo XML/HTML coverage reports,
+and runs Android Lint. Use the narrower commands while developing:
+
+```bash
+npm run test
+npm run test:coverage
+npm run static:analysis
+```
+
+Coverage reports are written to `app/build/reports/jacoco/jacocoTestReport/`.
 
 ## Optional Device Gate
 

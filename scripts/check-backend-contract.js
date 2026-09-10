@@ -27,6 +27,11 @@ if (!fs.existsSync(backendOpenApi)) {
   try {
     const openApi = JSON.parse(read(backendOpenApi));
     const sales = openApi.components?.schemas?.Sales;
+    const loginRequest = openApi.components?.schemas?.LoginRequest;
+    const loginResponse = openApi.components?.schemas?.LoginResponse;
+    const loginOperation = openApi.paths?.['/users/login']?.post;
+    const recoveryRequest = openApi.components?.schemas?.PasswordRecoveryRequest;
+    const recoveryOperation = openApi.paths?.['/users/password-recovery']?.post;
     const postSalesSchema = openApi.paths?.['/sales']?.post?.requestBody?.content?.['application/json']?.schema;
 
     if (postSalesSchema?.$ref !== '#/components/schemas/Sales') {
@@ -61,6 +66,37 @@ if (!fs.existsSync(backendOpenApi)) {
           failures.push(`Sales.${field} must be required.`);
         }
       });
+    }
+
+    if (loginOperation?.security?.length !== 0) {
+      failures.push('POST /users/login must be explicitly unauthenticated.');
+    }
+    ['companyId', 'email', 'password'].forEach((field) => {
+      if (!loginRequest?.required?.includes(field) || loginRequest?.properties?.[field]?.type !== 'string') {
+        failures.push(`LoginRequest.${field} must be a required string.`);
+      }
+    });
+    if (recoveryOperation?.security?.length !== 0 || !recoveryOperation?.responses?.['202']) {
+      failures.push('POST /users/password-recovery must be unauthenticated and return 202.');
+    }
+    ['companyId', 'email'].forEach((field) => {
+      if (!recoveryRequest?.required?.includes(field) || recoveryRequest?.properties?.[field]?.type !== 'string') {
+        failures.push(`PasswordRecoveryRequest.${field} must be a required string.`);
+      }
+    });
+    if (!loginResponse?.required?.includes('accessToken') ||
+        loginResponse?.properties?.accessToken?.type !== 'string') {
+      failures.push('LoginResponse.accessToken must be a required string.');
+    }
+    const loginUser = loginResponse?.properties?.user;
+    ['name', 'role', 'companyId'].forEach((field) => {
+      if (!loginUser?.required?.includes(field) || loginUser?.properties?.[field]?.type !== 'string') {
+        failures.push(`LoginResponse.user.${field} must be a required string.`);
+      }
+    });
+    if (!loginUser?.required?.includes('requiresInitialPasswordChange') ||
+        loginUser?.properties?.requiresInitialPasswordChange?.type !== 'boolean') {
+      failures.push('LoginResponse.user.requiresInitialPasswordChange must be a required boolean.');
     }
   } catch (error) {
     failures.push(`Backend OpenAPI is not valid JSON: ${error.message}`);

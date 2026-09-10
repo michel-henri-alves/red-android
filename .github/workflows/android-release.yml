@@ -1,0 +1,103 @@
+name: Android release artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: Version shown to users, for example 1.1.0
+        required: true
+        type: string
+      version_code:
+        description: Monotonically increasing Play Store version code
+        required: true
+        type: number
+      target_sha:
+        description: Full main commit SHA to release
+        required: true
+        type: string
+      confirmation:
+        description: Enter RELEASE-ANDROID followed by a colon and the full target SHA
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-production-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify release gate
+        env:
+          TARGET_SHA: ${{ inputs.target_sha }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          test "${TARGET_SHA}" = "${GITHUB_SHA}"
+          test "${CONFIRMATION}" = "RELEASE-ANDROID:${GITHUB_SHA}"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Prepare signing material
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          set -euo pipefail
+          test -n "${ANDROID_KEYSTORE_B64}"
+          printf '%s' "${ANDROID_KEYSTORE_B64}" | base64 --decode > "${RUNNER_TEMP}/red-release.keystore"
+          test -s "${RUNNER_TEMP}/red-release.keystore"
+      - name: Run release gates
+        run: |
+          npm run sdd:check
+          npm run contracts:check
+          ./gradlew testDebugUnitTest jacocoTestReport lintDebug --stacktrace
+      - name: Build signed release artifacts
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/red-release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          RED_VERSION_NAME: ${{ inputs.version_name }}
+          RED_VERSION_CODE: ${{ inputs.version_code }}
+        run: |
+          set -euo pipefail
+          test -n "${ANDROID_KEYSTORE_PASSWORD}"
+          test -n "${ANDROID_KEY_ALIAS}"
+          test -n "${ANDROID_KEY_PASSWORD}"
+          ./gradlew bundleRelease assembleRelease --stacktrace
+      - name: Verify signed artifacts
+        run: |
+          set -euo pipefail
+          APK="$(find app/build/outputs/apk/release -name '*.apk' -print -quit)"
+          AAB="$(find app/build/outputs/bundle/release -name '*.aab' -print -quit)"
+          test -n "${APK}" && test -n "${AAB}"
+          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          "$BUILD_TOOLS/apksigner" verify --verbose "${APK}"
+          sha256sum "${APK}" "${AAB}" > release-artifacts.sha256
+      - name: Upload signed release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: red-android-release-${{ inputs.version_name }}-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab
+            release-artifacts.sha256
+      - name: Remove temporary signing material
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/red-release.keystore"

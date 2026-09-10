@@ -1,0 +1,47 @@
+# Auth Session And Network Foundation Tasks
+
+- [x] T001 - REQ-AUTH-NET-001, REQ-AUTH-NET-004 Review session ownership, protected storage, and threat boundaries.
+  - Agent: `security-tenant-isolation-reviewer`
+  - Depends on: none
+  - Verification: accepted architecture/security decision in `plan.md`
+  - Evidence: accepted decision on 2026-08-15 defines application-scoped `SessionManager`, explicit session states, Android Keystore AES-GCM token protection in no-backup storage, fail-closed corruption/key invalidation, backup exclusions, single-owner navigation, serialized sliding-token updates, one-way `401` expiry, HTTPS-only release traffic, tenant trust boundaries, and rejected alternatives. Current app/backend findings and contract questions for T002 are recorded in `plan.md`.
+- [x] T002 - REQ-AUTH-NET-006 Characterize backend login, token claims, expiry, and tenant contract.
+  - Agent: `backend-contract-reviewer`
+  - Depends on: T001
+  - Verification: `npm run contracts:check`
+  - Evidence: accepted characterization on 2026-08-15 records the unauthenticated login request/safe response and error variants, JWT claims, executable 20-minute expiry, sliding `X-Access-Token` renewal, local-only logout, token-derived tenant boundary, and residual backend hardening risks. OpenAPI login response drift and stale 10-minute documentation were corrected; backend OpenAPI/auth checks and Android cross-project contract checks pass.
+- [x] T003 - REQ-AUTH-NET-001, REQ-AUTH-NET-003 Add test-first session state/store behavior.
+  - Agent: `test-engineer`
+  - Depends on: T002
+  - Verification: focused session JVM tests
+  - Evidence: eight `SessionManagerTest` cases pass for restoring/unauthenticated/authenticated/expired states, missing/expired/corrupt persistence, persist-before-publish authentication, serialized fresh-token replacement, stale `401` isolation, local expiry, and logout. `SecureTokenStore` remains a narrow boundary for the protected T005 implementation. Full JVM suite passes with 28 tests.
+- [x] T004 - REQ-AUTH-NET-002, REQ-AUTH-NET-003, REQ-AUTH-NET-006 Add interceptor/authenticator and redaction tests.
+  - Agent: `test-engineer`
+  - Depends on: T002
+  - Verification: focused MockWebServer/network tests
+  - Evidence: five `SessionInterceptorTest` cases pass for exactly one current Bearer header, explicitly unauthenticated login, sliding `X-Access-Token` capture, matching-token `401` expiry without replay/authenticator loops, and request/response secret redaction with login bodies omitted. Full JVM suite passes with 33 tests; contract, SDD, and diff checks pass.
+- [x] T005 - REQ-AUTH-NET-001, REQ-AUTH-NET-004 Implement protected session persistence and lifecycle-independent ownership.
+  - Agent: `implementation-engineer`
+  - Depends on: T003
+  - Verification: session tests pass
+  - Evidence: `KeystoreSecureTokenStore` uses an Android Keystore AES-256-GCM key and versioned authenticated ciphertext under `noBackupFilesDir`; writes are synced and atomically replace the prior file, while corruption/key replacement fails closed through `SessionManager`. Six focused persistence tests pass for encrypted round-trip, missing data, atomic replacement, tampering, key replacement, and clearing both file and key. `RedApplication` owns one lazily initialized `SessionManager` and starts restoration from an application `SupervisorJob`; manifest and cloud/device-transfer rules disable session backup. Full JVM suite passes with 39 tests.
+- [x] T006 - REQ-AUTH-NET-002, REQ-AUTH-NET-003, REQ-AUTH-NET-005 Implement authenticated, environment-aware network client configuration.
+  - Agent: `implementation-engineer`
+  - Depends on: T004, T005
+  - Verification: network tests and `npm run contracts:check`
+  - Evidence: `RedNetworkClients` now separates the unauthenticated login Retrofit/OkHttp path from product and sales clients that always use the application-owned `SessionManager`; `RetrofitClient` is initialized once by `RedApplication`. Build variants provide environment configuration: debug accepts an optional `redApiBaseUrl` and only explicitly listed local cleartext hosts, while release fixes the HTTPS API URL, rejects cleartext, and disables logging. Five focused client tests pass for environment enforcement, explicit local debug HTTP, public/protected client separation, login response parsing, and disabled release-style logging. The full JVM suite passes with 44 tests and `assembleRelease` passes.
+- [x] T007 - REQ-AUTH-NET-001, REQ-AUTH-NET-003 Integrate login, restore, expiry, logout, and protected navigation UX.
+  - Agent: `implementation-engineer`
+  - Depends on: T006
+  - Verification: Compose/navigation tests
+  - Evidence: `AuthenticatedApp` is the single root session-state owner: `Restoring` shows progress, unauthenticated/expired states show an actionable login, and only `Authenticated` constructs the protected navigator and camera permission flow. Login and protected content do not share a navigation back stack, so expiry/logout cannot back-navigate into protected screens. `AuthViewModel` now calls the public login API, validates JWT expiry metadata, persists the complete session before exposure, distinguishes credentials/connectivity/server/invalid-response failures, and delegates logout to `SessionManager`. Five view-model and four root-destination JVM tests pass; two Compose tests cover credential gating/submission and expired/connectivity messaging, and the instrumented APK compiles. Full JVM suite passes with 53 tests and release assembly passes.
+- [x] T008 - REQ-AUTH-NET-001, REQ-AUTH-NET-003, REQ-AUTH-NET-004 Perform physical-device login/relaunch/offline/logout checks.
+  - Agent: `mobile-ux-regression-reviewer`
+  - Depends on: T007
+  - Verification: device evidence recorded
+  - Evidence: physical-device verification on a Motorola moto g35 5G running Android 14 passed successful login against the local backend through `adb reverse`, encrypted-session process relaunch, offline relaunch with both Wi-Fi and mobile data disabled, logout, and back/reopen isolation. Connectivity was restored to its original enabled state. Three instrumented tests passed on-device. The device run also found and corrected forced-dark readability and generic-text password IME behavior; the final build uses a forced light theme and password/email-specific keyboards without autocorrect or capitalization. Full details are recorded in `device-evidence.md`.
+- [x] T009 - REQ-AUTH-NET-001, REQ-AUTH-NET-002, REQ-AUTH-NET-003, REQ-AUTH-NET-004, REQ-AUTH-NET-005, REQ-AUTH-NET-006 Update canonical docs and run security/release gates.
+  - Agent: `release-gate-reviewer`
+  - Depends on: T008
+  - Verification: full gates and recorded SDD run
+  - Evidence: canonical app/backend specs, task ledgers, project memory, and roadmap now document session ownership, Keystore storage, navigation, network/logging policy, tenant boundary, and residual risks. Security scan, 53 JVM tests, JaCoCo generation, Android lint/lint vital, release assembly, three physical-device instrumented tests, contract check, SDD check, and diff check passed. Recorded run `runs/2026-08-15T20-54-05-964Z.md` passed. No critical/high auth or tenant finding remains; `evidence.md` records code-gate approval and an operational no-go for public distribution until the production API hostname resolves and passes a login smoke test.

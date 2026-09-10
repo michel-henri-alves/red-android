@@ -1,0 +1,26 @@
+# Sale ViewModel And Compose Verification Tasks
+
+- [ ] T001 - REQ-SALE-UI-TEST-005 Define ViewModel/UI test seams and reusable fixtures.
+  - Agent: `test-engineer`
+  - Depends on: feature 0002 complete
+  - Verification: test architecture recorded in `plan.md`
+- [ ] T002 - REQ-SALE-UI-TEST-001, REQ-SALE-UI-TEST-003 Add BarcodeViewModel success/failure/retry/effect tests.
+  - Agent: `test-engineer`
+  - Depends on: T001
+  - Verification: focused JVM tests
+- [ ] T003 - REQ-SALE-UI-TEST-002, REQ-SALE-UI-TEST-003 Add Compose payment, loading, error, retry, and navigation tests.
+  - Agent: `test-engineer`
+  - Depends on: T002
+  - Verification: focused connected tests
+- [ ] T004 - REQ-SALE-UI-TEST-004 Replace presentation arithmetic/format ambiguity with cent-derived display state.
+  - Agent: `implementation-engineer`
+  - Depends on: T002
+  - Verification: money presentation tests
+- [ ] T005 - REQ-SALE-UI-TEST-001, REQ-SALE-UI-TEST-002, REQ-SALE-UI-TEST-003 Review lifecycle, recomposition, accessibility, and navigation regression risk.
+  - Agent: `mobile-ux-regression-reviewer`
+  - Depends on: T003, T004
+  - Verification: no open high finding and device evidence recorded
+- [ ] T006 - REQ-SALE-UI-TEST-001, REQ-SALE-UI-TEST-002, REQ-SALE-UI-TEST-003, REQ-SALE-UI-TEST-004, REQ-SALE-UI-TEST-005 Update docs and run release gates.
+  - Agent: `release-gate-reviewer`
+  - Depends on: T005
+  - Verification: full gates and recorded SDD run

@@ -1,0 +1,30 @@
+# Scanner Camera Lifecycle Hardening Tasks
+
+- [ ] T001 - REQ-CAMERA-001, REQ-CAMERA-002, REQ-CAMERA-003, REQ-CAMERA-004 Characterize current camera, permission, dedup, and resource behavior.
+  - Agent: `test-engineer`
+  - Depends on: feature 0003 complete
+  - Verification: focused characterization evidence
+- [ ] T002 - REQ-CAMERA-001, REQ-CAMERA-004 Approve scanner ownership and lifecycle architecture.
+  - Agent: `android-architecture-engineer`
+  - Depends on: T001
+  - Verification: accepted decision in `plan.md`
+- [ ] T003 - REQ-CAMERA-003, REQ-CAMERA-005 Extract/test scanner events, lookup, and dedup policy.
+  - Agent: `implementation-engineer`
+  - Depends on: T002
+  - Verification: scanner JVM tests
+- [ ] T004 - REQ-CAMERA-001, REQ-CAMERA-004 Implement lifecycle-aware camera/audio resource ownership.
+  - Agent: `implementation-engineer`
+  - Depends on: T002
+  - Verification: fake-camera lifecycle tests
+- [ ] T005 - REQ-CAMERA-002, REQ-CAMERA-005 Implement permission/unavailable/error/retry UI states.
+  - Agent: `implementation-engineer`
+  - Depends on: T003, T004
+  - Verification: Compose permission tests
+- [ ] T006 - REQ-CAMERA-001, REQ-CAMERA-002, REQ-CAMERA-003, REQ-CAMERA-004, REQ-CAMERA-005, REQ-CAMERA-006 Run API/device lifecycle and permission matrix.
+  - Agent: `mobile-ux-regression-reviewer`
+  - Depends on: T005
+  - Verification: connected/device evidence
+- [ ] T007 - REQ-CAMERA-001, REQ-CAMERA-002, REQ-CAMERA-003, REQ-CAMERA-004, REQ-CAMERA-005, REQ-CAMERA-006 Update docs and close gates.
+  - Agent: `release-gate-reviewer`
+  - Depends on: T006
+  - Verification: full gates and recorded SDD run

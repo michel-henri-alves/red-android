@@ -1,0 +1,38 @@
+# Durable Sale Outbox And Idempotency Tasks
+
+- [ ] T001 - REQ-SALE-OUTBOX-001, REQ-SALE-OUTBOX-002, REQ-SALE-OUTBOX-005 Approve cross-repository architecture and idempotency semantics.
+  - Agent: `android-architecture-engineer`
+  - Depends on: features 0002 and 0003 complete
+  - Verification: accepted ADR with no unresolved transaction decision
+- [ ] T002 - REQ-SALE-OUTBOX-002, REQ-SALE-OUTBOX-005, REQ-SALE-OUTBOX-006 Add backend duplicate-key, ambiguity, and tenant-isolation tests.
+  - Agent: `backend-contract-reviewer`
+  - Depends on: T001
+  - Verification: focused backend tests initially fail for missing behavior
+- [ ] T003 - REQ-SALE-OUTBOX-002, REQ-SALE-OUTBOX-005 Implement atomic backend idempotency and OpenAPI contract.
+  - Agent: `implementation-engineer`
+  - Depends on: T002
+  - Verification: backend tests and `openapi:check`
+- [ ] T004 - REQ-SALE-OUTBOX-001, REQ-SALE-OUTBOX-006 Add Room schema, DAO, migration, and recovery tests.
+  - Agent: `test-engineer`
+  - Depends on: T001
+  - Verification: focused database/migration tests
+- [ ] T005 - REQ-SALE-OUTBOX-001, REQ-SALE-OUTBOX-004 Implement durable outbox repository and state projection.
+  - Agent: `implementation-engineer`
+  - Depends on: T004
+  - Verification: outbox reducer/repository tests
+- [ ] T006 - REQ-SALE-OUTBOX-003, REQ-SALE-OUTBOX-005 Implement unique WorkManager submission and reconciliation.
+  - Agent: `implementation-engineer`
+  - Depends on: T003, T005
+  - Verification: worker/backoff/concurrency tests
+- [ ] T007 - REQ-SALE-OUTBOX-004 Integrate pending/failed/confirmed sale UX.
+  - Agent: `implementation-engineer`
+  - Depends on: T006
+  - Verification: Compose tests
+- [ ] T008 - REQ-SALE-OUTBOX-001, REQ-SALE-OUTBOX-002, REQ-SALE-OUTBOX-003, REQ-SALE-OUTBOX-005 Run offline, process-death, reconnect, and ambiguity device matrix.
+  - Agent: `test-engineer`
+  - Depends on: T007
+  - Verification: physical/emulator and backend evidence recorded
+- [ ] T009 - REQ-SALE-OUTBOX-001, REQ-SALE-OUTBOX-002, REQ-SALE-OUTBOX-003, REQ-SALE-OUTBOX-004, REQ-SALE-OUTBOX-005, REQ-SALE-OUTBOX-006 Update canonical docs and close both repositories.
+  - Agent: `release-gate-reviewer`
+  - Depends on: T008
+  - Verification: full cross-repository gates and SDD runs

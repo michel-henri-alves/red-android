@@ -3,8 +3,8 @@ package com.m4.red_android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
-import com.m4.red_android.ui.permissions.CameraPermissionHandler
+import com.m4.red_android.data.api.RetrofitClient
+import com.m4.red_android.ui.theme.AppTheme
 
 
 class MainActivity : ComponentActivity() {
@@ -12,10 +12,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MaterialTheme {
-                CameraPermissionHandler {
-                    AppNavigator()
-                }
+            AppTheme {
+                val redApplication = application as RedApplication
+                AuthenticatedApp(
+                    redApplication.sessionManager,
+                    RetrofitClient.loginApi,
+                    RetrofitClient.passwordApi,
+                )
             }
         }
     }

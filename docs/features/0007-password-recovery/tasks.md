@@ -1,0 +1,35 @@
+# Feature Tasks: Password Recovery
+
+- [x] T001 - REQ-ANDROID-RECOVERY-001, REQ-ANDROID-RECOVERY-004, REQ-ECO-001, REQ-ECO-008 Confirm the approved required `companyId` login/recovery fields and finalized backend OpenAPI contract.
+  - Agent: `sdd-planner`, `backend-contract-reviewer`
+  - Depends on: backend contract task T007
+  - Verification: `npm run sdd:check`; `npm run contracts:check`
+- [x] T002 - REQ-ANDROID-RECOVERY-002, REQ-ANDROID-RECOVERY-003, REQ-ANDROID-RECOVERY-004 Add Retrofit and ViewModel tests for accepted, validation, throttle, failure, retry and duplicate suppression.
+  - Agent: `test-engineer`
+  - Depends on: T001
+  - Verification: focused recovery ViewModel/API tests fail only for unimplemented behavior
+- [x] T003 - REQ-ANDROID-RECOVERY-001, REQ-ANDROID-RECOVERY-002, REQ-ANDROID-RECOVERY-003, REQ-ANDROID-RECOVERY-004 Implement recovery DTO/API, state owner and accessible Compose UI.
+  - Agent: `implementation-engineer`
+  - Depends on: T002
+  - Verification: focused recovery ViewModel/API/Compose tests pass
+- [x] T004 - REQ-ANDROID-RECOVERY-005, REQ-ANDROID-RECOVERY-006, REQ-ECO-005, REQ-ECO-006 Add session/navigation/password-change tests for temporary login, back/deep links, success and expiry.
+  - Agent: `test-engineer`
+  - Depends on: T001
+  - Verification: focused auth/session/navigation tests fail only for unimplemented behavior
+- [x] T005 - REQ-ANDROID-RECOVERY-005, REQ-ANDROID-RECOVERY-006 Implement mandatory-change session mapping, navigation and password-change screen behavior.
+  - Agent: `implementation-engineer`
+  - Depends on: T003, T004
+  - Verification: focused auth/session/navigation/Compose tests pass; protected deep links remain unavailable
+- [x] T006 - REQ-ANDROID-RECOVERY-001, REQ-ANDROID-RECOVERY-004, REQ-ANDROID-RECOVERY-006 Update app, backend-contract, task and memory documentation.
+  - Agent: `sdd-planner`
+  - Depends on: T005
+  - Verification: canonical documents describe recovery contract, UI and mandatory-session behavior
+- [x] T007 - REQ-ANDROID-RECOVERY-001, REQ-ANDROID-RECOVERY-002, REQ-ANDROID-RECOVERY-003, REQ-ANDROID-RECOVERY-004, REQ-ANDROID-RECOVERY-005, REQ-ANDROID-RECOVERY-006, REQ-ECO-001, REQ-ECO-005, REQ-ECO-006, REQ-ECO-008 Run verification and record Android gates.
+  - Agent: `implementation-engineer`
+  - Depends on: T006
+  - Verification: `npm run sdd:check`, `npm run contracts:check`, `npm run test`, `npm run lint`, `npm run build`, optional `npm run connected:test`, and a `runs/` report
+- [ ] T008 - REQ-ANDROID-RECOVERY-001, REQ-ANDROID-RECOVERY-002, REQ-ANDROID-RECOVERY-003, REQ-ANDROID-RECOVERY-004, REQ-ANDROID-RECOVERY-005, REQ-ANDROID-RECOVERY-006 Review accessibility, lifecycle, auth/navigation regressions and secret exposure.
+  - Review 2026-09-08: real local backend/Mailpit journey passed; see `runs/2026-09-08-follow-up.md`. Manual screen-reader/TalkBack review remains open.
+  - Agent: `mobile-ux-regression-reviewer`, `security-tenant-isolation-reviewer`, `code-reviewer`
+  - Depends on: T007
+  - Verification: review findings resolved or recorded as owned residual risks

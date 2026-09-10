@@ -19,14 +19,15 @@ android {
         applicationId = "com.m4.red_android"
         minSdk = 28
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0"
+        versionCode = providers.environmentVariable("RED_VERSION_CODE").orNull?.toIntOrNull() ?: 3
+        versionName = providers.environmentVariable("RED_VERSION_NAME").orNull ?: "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -34,8 +35,40 @@ android {
     }
 
     buildTypes {
+        val releaseKeystore = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
+        val releaseStorePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").orNull
+        val releaseKeyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").orNull
+        val releaseKeyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").orNull
+
+        if (listOf(releaseKeystore, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }) {
+            signingConfigs.create("ciRelease") {
+                storeFile = file(releaseKeystore!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+
+        debug {
+            val configuredBaseUrl = providers.gradleProperty("redApiBaseUrl")
+                .orElse("https://7700ezljb5.execute-api.us-east-1.amazonaws.com/")
+                .get()
+            buildConfigField("String", "API_BASE_URL", "\"$configuredBaseUrl\"")
+            buildConfigField("boolean", "NETWORK_LOGGING_ENABLED", "true")
+            buildConfigField("boolean", "CLEARTEXT_API_ALLOWED", "true")
+        }
         release {
             isMinifyEnabled = false
+            if (signingConfigs.findByName("ciRelease") != null) {
+                signingConfig = signingConfigs.getByName("ciRelease")
+            }
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://7700ezljb5.execute-api.us-east-1.amazonaws.com/\"",
+            )
+            buildConfigField("boolean", "NETWORK_LOGGING_ENABLED", "false")
+            buildConfigField("boolean", "CLEARTEXT_API_ALLOWED", "false")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -112,8 +145,11 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // CameraX
     implementation(libs.androidx.camera.core)

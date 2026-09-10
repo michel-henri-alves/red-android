@@ -7,7 +7,8 @@ Native Android app for RED mobile workflows using Kotlin, Jetpack Compose, and t
 ## Current Capabilities
 
 - Compose-based app shell and navigation.
-- Login/auth work in progress.
+- Tenant-aware login, password recovery, mandatory password replacement, protected
+  navigation, encrypted session restore, expiry, and logout.
 - Camera/barcode scanning work in progress.
 - Retrofit/OkHttp dependencies configured for backend integration.
 
@@ -16,6 +17,47 @@ Native Android app for RED mobile workflows using Kotlin, Jetpack Compose, and t
 - Backend-dependent behavior must stay aligned with `red-backend` contracts.
 - Shared business behavior should be checked against `red-web` when the same domain exists there.
 - Generated build outputs and local machine files are not part of feature implementation.
+
+### Authentication And Session
+
+- One application-scoped `SessionManager` is the authority for `Restoring`,
+  `Unauthenticated`, `Authenticated`, and `Expired` state. UI and navigation derive
+  from that state; a ViewModel or composable must not own a second auth Boolean.
+- The access token is encrypted with an Android Keystore AES-256-GCM key and stored as
+  authenticated, versioned ciphertext under `noBackupFilesDir`. Corruption or key
+  invalidation fails closed and clears the session.
+- Login uses a separate unauthenticated Retrofit client. Product and sales APIs use an
+  authenticated client that replaces any prior authorization header with exactly one
+  current Bearer token.
+- `401` expires only the token that made the request and never automatically replays it.
+  `X-Access-Token` sliding renewal replaces only the matching session with a non-older,
+  non-expired token.
+- Login and protected content do not share a navigation back stack. Restore completes
+  before either is selected; logout and expiry cannot navigate back into protected UI.
+- Logout is local because the backend currently exposes no refresh-token revocation
+  contract. Connectivity failures do not clear a locally valid session.
+- Login and recovery require normalized `companyId` plus email. Recovery feedback is
+  generic and recovery form values are never persisted.
+- A login response with `requiresInitialPasswordChange=true` selects the root password
+  replacement screen before the protected `NavHost` is composed. This restriction is
+  persisted with the encrypted session, survives process recreation, and consumes root
+  back navigation; the application currently registers no external deep links.
+- Successful password replacement persists the unrestricted session projection. A
+  rejected or expired replacement leaves the session restricted or expires it through
+  the normal authenticated-client `401` handling.
+
+### Network And Tenant Security
+
+- Release builds use the configured HTTPS production API, reject cleartext, and disable
+  network logging. Debug may opt into `redApiBaseUrl`; cleartext remains limited by the
+  debug network-security allowlist.
+- Logs never read bodies, omit query strings, and redact `Authorization` and
+  `X-Access-Token` headers.
+- Tenant identity is derived by the backend from the verified JWT. Android may retain
+  returned company/role values for display hints but must not manufacture tenant
+  authorization fields in protected requests.
+- App backup and device transfer are disabled; session ciphertext also resides in the
+  platform no-backup directory.
 
 ### Sale Submission Integrity
 

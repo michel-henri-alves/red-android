@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PointOfSale
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -27,7 +28,7 @@ import com.m4.red_android.viewmodels.BarcodeViewModel
 import com.m4.red_android.viewmodels.ProductViewModel
 
 @Composable
-fun AppNavigator() {
+fun AppNavigator(onLogout: () -> Unit) {
     val navController = rememberNavController()
     val barcodeViewModel: BarcodeViewModel = viewModel()
     val productViewModel: ProductViewModel = viewModel()
@@ -91,6 +92,12 @@ fun AppNavigator() {
                         }
                     )
                 }
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onLogout,
+                    icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Sair") },
+                    label = { Text("Sair") },
+                )
             }
         }
     ) { innerPadding ->

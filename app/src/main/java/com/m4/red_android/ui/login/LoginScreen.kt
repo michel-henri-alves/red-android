@@ -35,8 +35,10 @@ fun LoginScreen(
     sessionExpired: Boolean,
     onLogin: (companyId: String, email: String, password: String) -> Unit,
     onRecoverPassword: (companyId: String, email: String) -> Unit,
+    company: com.m4.red_android.auth.CompanyContext,
+    onSwitchCompany: () -> Unit = {},
 ) {
-    var companyId by remember { mutableStateOf("") }
+    val companyId = company.companyId
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var recoveryOpen by remember { mutableStateOf(false) }
@@ -47,16 +49,9 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("Entrar")
+        Text("Entrar em ${company.name}")
+        TextButton(onClick = onSwitchCompany) { Text("Trocar empresa") }
         if (sessionExpired) Text("Sua sessão expirou. Entre novamente.")
-        OutlinedTextField(
-            value = companyId,
-            onValueChange = { companyId = it },
-            label = { Text("Identificador da empresa") },
-            enabled = !loading,
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp).testTag("login_company_id"),
-        )
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -96,7 +91,7 @@ fun LoginScreen(
             Text("Esqueci minha senha")
         }
         if (recoveryOpen) {
-            Text("Use o identificador da empresa e o e-mail informados acima.")
+            Text("Use o e-mail cadastrado nesta empresa.")
             Button(
                 onClick = { onRecoverPassword(companyId, email) },
                 enabled = recoveryState != RecoveryUiState.Loading &&
@@ -115,13 +110,14 @@ fun LoginScreen(
 }
 
 private fun RecoveryFailure.message(): String = when (this) {
-    RecoveryFailure.VALIDATION -> "Informe o identificador da empresa e o e-mail."
+    RecoveryFailure.VALIDATION -> "Informe o e-mail."
     RecoveryFailure.THROTTLED -> "Muitas tentativas. Aguarde antes de tentar novamente."
     RecoveryFailure.CONNECTIVITY -> "Sem conexão. Verifique sua internet e tente novamente."
     RecoveryFailure.SERVER -> "Não foi possível solicitar a recuperação agora. Tente novamente."
 }
 
 private fun LoginFailure.message(): String = when (this) {
+    LoginFailure.THROTTLED -> "Muitas tentativas. Aguarde antes de tentar novamente."
     LoginFailure.INVALID_CREDENTIALS -> "E-mail ou senha inválidos."
     LoginFailure.CONNECTIVITY -> "Sem conexão. Verifique sua internet e tente novamente."
     LoginFailure.SERVER -> "Não foi possível entrar agora. Tente novamente."

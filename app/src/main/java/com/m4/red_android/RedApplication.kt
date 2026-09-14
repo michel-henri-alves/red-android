@@ -17,6 +17,8 @@ class RedApplication : Application() {
         SessionManager(KeystoreSecureTokenStore(this))
     }
 
+    val companyContextStore by lazy { com.m4.red_android.auth.FileCompanyContextStore(this) }
+
     override fun onCreate() {
         super.onCreate()
         RetrofitClient.initialize(sessionManager) { message -> Log.d("RedNetwork", message) }

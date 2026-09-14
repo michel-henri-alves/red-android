@@ -24,6 +24,7 @@ class LoginScreenTest {
             LoginScreen(
                 LoginUiState.Idle,
                 RecoveryUiState.Idle,
+                company = com.m4.red_android.auth.CompanyContext("company-1", "loja-a", "Loja A"),
                 sessionExpired = false,
                 onLogin = { companyId, email, password -> submitted = Triple(companyId, email, password) },
                 onRecoverPassword = { _, _ -> },
@@ -31,7 +32,6 @@ class LoginScreenTest {
         }
 
         composeRule.onNodeWithTag("login_submit").assertIsNotEnabled()
-        composeRule.onNodeWithTag("login_company_id").performTextInput("company-1")
         composeRule.onNodeWithTag("login_email").performTextInput("maria@example.com")
         composeRule.onNodeWithTag("login_password").performTextInput("secret")
         composeRule.onNodeWithTag("login_submit").assertIsEnabled().performClick()
@@ -44,6 +44,7 @@ class LoginScreenTest {
             LoginScreen(
                 LoginUiState.Error(LoginFailure.CONNECTIVITY),
                 RecoveryUiState.Idle,
+                company = com.m4.red_android.auth.CompanyContext("company-1", "loja-a", "Loja A"),
                 sessionExpired = true,
                 onLogin = { _, _, _ -> },
                 onRecoverPassword = { _, _ -> },
@@ -61,6 +62,7 @@ class LoginScreenTest {
             LoginScreen(
                 LoginUiState.Idle,
                 RecoveryUiState.Accepted,
+                company = com.m4.red_android.auth.CompanyContext("company-1", "loja-a", "Loja A"),
                 sessionExpired = false,
                 onLogin = { _, _, _ -> },
                 onRecoverPassword = { companyId, email -> recovered = companyId to email },
@@ -69,7 +71,6 @@ class LoginScreenTest {
 
         composeRule.onNodeWithText("Esqueci minha senha").performClick()
         composeRule.onNodeWithTag("recovery_submit").assertIsNotEnabled()
-        composeRule.onNodeWithTag("login_company_id").performTextInput("company-1")
         composeRule.onNodeWithTag("login_email").performTextInput("maria@example.com")
         composeRule.onNodeWithTag("recovery_submit").assertIsEnabled().performClick()
 

@@ -1,0 +1,13 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const file = path.resolve(__dirname, '../../red-backend/docs/contracts/openapi.json');
+const spec = JSON.parse(fs.readFileSync(file, 'utf8'));
+const operation = spec.paths['/companies/resolve-access'].post;
+assert.deepEqual(operation.security, []);
+assert.equal(operation.requestBody.content['application/json'].schema.$ref, '#/components/schemas/CompanyAccessRequest');
+for (const code of [200, 400, 404, 429, 503]) assert.ok(operation.responses[code]);
+assert.deepEqual(spec.components.schemas.CompanyAccessRequest.required, ['accessName']);
+assert.deepEqual(spec.components.schemas.CompanyAccessResponse.required.sort(), ['accessName', 'companyId', 'name']);
+assert.equal(spec.components.schemas.CompanyAccessResponse.additionalProperties, false);
+console.log('Company access contract check passed.');

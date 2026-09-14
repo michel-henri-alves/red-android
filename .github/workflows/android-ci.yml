@@ -4,7 +4,7 @@ on:
   pull_request:
     paths: ["app/**", "gradle/**", "*.gradle.kts", "gradle.properties", "scripts/**", "docs/**", ".github/workflows/android-*.yml"]
   push:
-    branches: [main]
+    branches: [master]
     paths: ["app/**", "gradle/**", "*.gradle.kts", "gradle.properties", "scripts/**", "docs/**", ".github/workflows/android-*.yml"]
   workflow_dispatch:
 

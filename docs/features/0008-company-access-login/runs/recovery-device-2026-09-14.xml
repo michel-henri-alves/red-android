@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="com.m4.red_android.PasswordRecoveryJourneyTest" tests="1" failures="0" errors="0" skipped="0" time="8.655" timestamp="2026-09-14T17:27:00" hostname="localhost">
+  <properties>
+    <property name="device" value="moto g35 5G - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="recoveryEmailTemporaryLoginAndReplacementReachTheRealBackend" classname="com.m4.red_android.PasswordRecoveryJourneyTest" time="6.783" />
+</testsuite>

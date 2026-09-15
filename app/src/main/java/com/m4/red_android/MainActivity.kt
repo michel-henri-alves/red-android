@@ -18,6 +18,8 @@ class MainActivity : ComponentActivity() {
                     redApplication.sessionManager,
                     RetrofitClient.loginApi,
                     RetrofitClient.passwordApi,
+                    RetrofitClient.companyAccessApi,
+                    redApplication.companyContextStore,
                 )
             }
         }

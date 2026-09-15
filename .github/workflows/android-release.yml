@@ -12,7 +12,7 @@ on:
         required: true
         type: number
       target_sha:
-        description: Full main commit SHA to release
+        description: Full master commit SHA to release
         required: true
         type: string
       confirmation:
@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   release:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:

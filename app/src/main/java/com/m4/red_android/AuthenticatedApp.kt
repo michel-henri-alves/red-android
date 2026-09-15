@@ -9,6 +9,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.m4.red_android.auth.CompanyContextStore
+import com.m4.red_android.data.api.CompanyAccessApi
+import com.m4.red_android.ui.login.CompanyAccessScreen
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import com.m4.red_android.auth.SessionManager
 import com.m4.red_android.auth.SessionState
 import com.m4.red_android.data.api.LoginApi
@@ -36,11 +46,14 @@ fun AuthenticatedApp(
     sessionManager: SessionManager,
     loginApi: LoginApi,
     passwordApi: PasswordApi,
+    companyApi: CompanyAccessApi? = null,
+    companyStore: CompanyContextStore? = null,
 ) {
     val authViewModel: AuthViewModel = viewModel(
-        factory = AuthViewModel.Factory(sessionManager, loginApi, passwordApi),
+        factory = AuthViewModel.Factory(sessionManager, loginApi, passwordApi, companyApi, companyStore),
     )
     val sessionState by authViewModel.sessionState.collectAsState()
+    val companyState by authViewModel.companyState.collectAsState()
     val loginState by authViewModel.loginState.collectAsState()
     val recoveryState by authViewModel.recoveryState.collectAsState()
     val passwordChangeState by authViewModel.passwordChangeState.collectAsState()
@@ -49,15 +62,24 @@ fun AuthenticatedApp(
         RootDestination.RESTORING -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
-        RootDestination.LOGIN, RootDestination.EXPIRED_LOGIN -> LoginScreen(
-            state = loginState,
-            recoveryState = recoveryState,
-            sessionExpired = sessionState is SessionState.Expired,
-            onLogin = authViewModel::login,
-            onRecoverPassword = authViewModel::requestPasswordRecovery,
-        )
-        RootDestination.PROTECTED -> CameraPermissionHandler {
-            AppNavigator(onLogout = authViewModel::logout)
+        RootDestination.LOGIN, RootDestination.EXPIRED_LOGIN -> {
+            val company = companyState.company
+            if (company == null) CompanyAccessScreen(companyState, authViewModel::selectCompany, authViewModel::restoreCompanySelection)
+            else key(company.companyId) {
+                LoginScreen(
+                    state = loginState, recoveryState = recoveryState,
+                    sessionExpired = sessionState is SessionState.Expired,
+                    onLogin = authViewModel::login, onRecoverPassword = authViewModel::requestPasswordRecovery,
+                    company = company, onSwitchCompany = authViewModel::switchCompany,
+                )
+            }
+        }
+        RootDestination.PROTECTED -> key((sessionState as SessionState.Authenticated).session.user?.companyId) {
+            val owner = remember { object : ViewModelStoreOwner { override val viewModelStore = ViewModelStore() } }
+            DisposableEffect(owner) { onDispose { owner.viewModelStore.clear() } }
+            CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
+                CameraPermissionHandler { AppNavigator(onLogout = authViewModel::logout) }
+            }
         }
         RootDestination.PASSWORD_CHANGE -> ChangePasswordScreen(
             state = passwordChangeState,

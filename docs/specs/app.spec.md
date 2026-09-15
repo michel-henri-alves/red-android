@@ -93,3 +93,11 @@ Native Android app for RED mobile workflows using Kotlin, Jetpack Compose, and t
 - `npm run lint`
 - `npm run static:analysis`
 - `npm run build`
+
+## ECO-0002 company setup
+
+First signed-out access asks for a company access name (e.g. minha-loja), then shows “Entrar em <company name>” with a correction/switch action before email/password submission. FileCompanyContextStore atomically persists companyId/accessName/name/schemaVersion only after matching authenticated login, including mandatory-password-change sessions. Stored context survives logout, process recreation and restart; noBackupFilesDir plus existing backup exclusions prevent OS restore after reinstall.
+
+Before login/recovery, AuthViewModel revalidates the saved name and ID. Mismatch requires setup; unavailable company offers correction/retry. Switching preserves the previous durable choice until successful replacement and invalidates late requests. Protected ViewModels have a company/session-scoped store that is cleared on leaving protected navigation, preventing previous-tenant form/cache reuse.
+
+No durable sale outbox exists in current source; the separate planned outbox feature is not implemented here. This change introduces no deletion of durable sales records. Existing sessions without accessName remain usable until sign-out, then setup is required.

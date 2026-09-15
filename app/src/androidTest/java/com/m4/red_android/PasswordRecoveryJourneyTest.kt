@@ -4,10 +4,13 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.platform.app.InstrumentationRegistry
 import com.m4.red_android.auth.AuthenticatedSession
+import com.m4.red_android.auth.CompanyContext
+import com.m4.red_android.auth.CompanyContextStore
 import com.m4.red_android.auth.SecureTokenStore
 import com.m4.red_android.auth.SessionManager
 import com.m4.red_android.auth.SessionState
@@ -38,8 +41,19 @@ class PasswordRecoveryJourneyTest {
         runBlocking { manager.restore() }
         val clients = RedNetworkClients(NetworkEnvironment(baseUrl, true), manager, false) { }
         val http = OkHttpClient()
-        composeRule.setContent { AuthenticatedApp(manager, clients.loginApi, clients.passwordApi) }
-        composeRule.onNodeWithTag("login_company_id").performTextInput("ui-company")
+        val companyStore = object : CompanyContextStore {
+            private var company: CompanyContext? = null
+            override suspend fun read() = company
+            override suspend fun write(company: CompanyContext) { this.company = company }
+        }
+        composeRule.setContent {
+            AuthenticatedApp(manager, clients.loginApi, clients.passwordApi, clients.companyAccessApi, companyStore)
+        }
+        composeRule.onNodeWithTag("company_access_name").performTextInput("ui-company")
+        composeRule.onNodeWithTag("company_access_resolve").performClick()
+        composeRule.waitUntil(20000) {
+            composeRule.onAllNodesWithText("Entrar em Local UI Company").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithTag("login_email").performTextInput("android@example.com")
         composeRule.onNodeWithText("Esqueci minha senha").performClick()
         composeRule.onNodeWithTag("recovery_submit").performClick()

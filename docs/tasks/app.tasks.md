@@ -45,3 +45,9 @@
 - [x] REQ-ANDROID-RECOVERY-006 — Replace the stored session state only after a successful
   password change and retain safe failure/expiry handling.
 - [x] Verify recovery and mandatory-change Compose behavior on an Android 14 physical device.
+
+## ECO-0002 company access login
+
+- [x] Implement local company access-name behavior and coordinated compatibility changes.
+- [ ] Complete environment-specific rollout checks and close ECO-0002 after integrated evidence and production inputs are recorded.
+- Evidence and exact local verification results: docs/features/0008-company-access-login/runs/implementation-2026-09-10.md.

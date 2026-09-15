@@ -41,3 +41,12 @@ has already arrived. Request/response DTOs remain unchanged. A real device journ
 with Retrofit, Compose, MongoDB and Mailpit verified email delivery, temporary login,
 mandatory replacement and old-session rejection. See the feature run report for
 local-only setup; manual TalkBack/large-font/landscape review remains pending.
+
+## ECO-0002 company discovery
+
+CompanyAccessApi uses the public Retrofit client: POST companies/resolve-access, body {accessName}, success {companyId,accessName,name}. DTO maps to a versioned local CompanyContext; schemaVersion is never required from the server. Error codes 400/404/429/503 follow backend OpenAPI. Login/recovery bodies and token authorization are unchanged; returned login companyId must match the selected company.
+
+
+## Definitive domain — 2026-09-11
+
+ECO-T009 selects `tipo.click` (AWS-registered) and `<accessName>.tipo.click`. The API URL remains unchanged. The existing DNS zone is now associated with CloudFront FREE/ACTIVE. Local web production builds use the new base domain; DNS/TLS/application activation remains pending. No additional charges beyond registration/renewal are authorized for this task. See the ECO-0002 domain-migration subtask and the infrastructure run `docs/features/0002-company-access-login/runs/domain-cost-2026-09-11.md` for the actual billing verification and remaining limits.

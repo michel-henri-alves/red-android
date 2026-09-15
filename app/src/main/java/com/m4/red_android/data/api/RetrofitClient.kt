@@ -36,6 +36,7 @@ class RedNetworkClients(
     private val publicRetrofit = retrofit(environment.baseUrl, publicHttpClient)
     private val authenticatedRetrofit = retrofit(environment.baseUrl, authenticatedHttpClient)
 
+    val companyAccessApi: CompanyAccessApi = publicRetrofit.create(CompanyAccessApi::class.java)
     val loginApi: LoginApi = publicRetrofit.create(LoginApi::class.java)
     val passwordApi: PasswordApi = authenticatedRetrofit.create(PasswordApi::class.java)
     val productApi: ProductApi = authenticatedRetrofit.create(ProductApi::class.java)
@@ -69,6 +70,7 @@ object RetrofitClient {
         }
     }
 
+    val companyAccessApi: CompanyAccessApi get() = clients().companyAccessApi
     val loginApi: LoginApi get() = clients().loginApi
     val passwordApi: PasswordApi get() = clients().passwordApi
     val productApi: ProductApi get() = clients().productApi
